@@ -8,6 +8,7 @@
 #include<map>
 #include<stack>
 #include<list>
+#include<numeric>
 
 
 using namespace std;
@@ -22,68 +23,67 @@ vector<ll> primes;
 ll primemax = 2;
 ll num = 1;
 
-bool checkPrime(ll n) {
-	bool ret = true;
-	if (primemax > n)
-		return true;
-
-	for (ll k = primemax + 1; k <= n; k++) {
-		if (k % 2 == 0)
-			continue;
-
-		ret = true;
-		for (ll i = 0; i < num && primes[i]<k; i++) {
-			if (k % primes[i] == 0) {
-				ret = false;
-				break;
-			}
-		}
-		if (ret) {
-			primes.push_back(k);
-			num++;
-		}
-	}
-	primemax = n;
-	return ret;
+ll myGcd(ll a, ll b) {
+	return gcd(a, b);
 }
 
-void solveTest() {
-	int n; cin >> n;
-	int val = 1;
-	long long mi = 1100100100100100100, ma = 0;
-	ll max_dif;
-	vector<long long> a(n + 1);
-	rep(i, n) {
-		cin >> a[i];
-		mi = min(mi, a[i]);
-		ma = max(ma, a[i]);
-	}
-	max_dif = ma - mi;
-	checkPrime(max_dif);
-	for (ll i = 0;max_dif >= primes[i] * val && i<num;++i) {
-		ll div = primes[i];
-		ll remain = a[0]%div;
-		int cont = 1;
-		for (int j = 1;j < n;j++) {
-			if (remain == (a[j] % div)) {
-				cont++;
-			}
-			else {
-				val = max(val, cont);
-				remain = (a[j] % div);
-				cont = 1;
+ll myMin(ll a, ll b) {
+	return min(a, b);
+}
+
+ll myMax(ll a, ll b) {
+	return max(a, b);
+}
+
+class SparseTable {
+	vector< vector<ll> > table;
+	ll(*func)(ll, ll);
+
+public:
+	SparseTable(vector<ll> vec, ll (*f)(ll,ll)) {
+		this->func = f;
+		size_t s = vec.size();
+		int col = floor(log2(s));
+		table.resize(col+1);
+		table[0].resize(s);
+		rep(i, s)
+			table[0][i] = vec[i];
+		rrep(k, col) {
+			ll g = pow(2, k-1);
+			table[k].resize(s);
+			rep(i, s - (g * 2 - 1)) {
+				table[k][i] = f(table[k - 1][i], table[k - 1][i + g]);
 			}
 		}
-		val = max(val, cont);
-		if (val == n)
-			break;
 	}
-	cout << val << "\n";
+
+	bool query(ll l, ll r) {
+		ll g = floor(log2(r));
+		ll ret = this->func(table[g][l],table[g][l+r-pow(2,g)]);
+		return (ret > 1);
+	}
+};
+
+void solveTest() {
+	int res = 1;
+	int n; cin >> n;
+	vector<ll> a(n);
+	vector<ll> d(n-1);
+	rep(i, n) cin >> a[i];
+	rep(i, n - 1) d[i] = abs(a[i] - a[i + 1]);
+	SparseTable st = SparseTable(d, myGcd);
+	for (int i = 0; i < n - 1; i++) {
+		for (int j = res+1; j < n - i-1; j++) {
+			if (st.query(i, j)) res = j + 1;
+			else break;
+		}
+	}
+	cout << (res + 1) << "\n";
 }
 
 int main() {
 	int test; cin >> test;
-	primes.push_back(2);
-	while (test--)
+	while (test--) {
 		solveTest();
+	}
 }

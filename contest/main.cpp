@@ -42,8 +42,8 @@ class SparseTable {
 public:
 	SparseTable(vector<ll> vec, ll (*f)(ll,ll)) {
 		this->func = f;
-		size_t s = vec.size();
-		int col = floor(log2(s));
+		ll s = vec.size();
+		ll col = floor(log2(s));
 		table.resize(col+1);
 		table[0].resize(s);
 		rep(i, s)
@@ -70,11 +70,15 @@ void solveTest() {
 	vector<ll> a(n);
 	vector<ll> d(n-1);
 	rep(i, n) cin >> a[i];
+	if (n == 1) {
+		cout << 1 << "\n";
+		return;
+	}
 	rep(i, n - 1) d[i] = abs(a[i] - a[i + 1]);
 	SparseTable st = SparseTable(d, myGcd);
 	for (int i = 0; i < n - 1; i++) {
-		for (int j = res+1; j < n - i-1; j++) {
-			if (st.query(i, j)) res = j + 1;
+		for (int j = res+1; j < n - i; j++) {
+			if (st.query(i, j)) res = j;
 			else break;
 		}
 	}

@@ -40,16 +40,16 @@ class SparseTable {
 	ll(*func)(ll, ll);
 
 public:
-	SparseTable(vector<ll> vec, ll (*f)(ll,ll)) {
+	SparseTable(vector<ll> vec, ll(*f)(ll, ll)) {
 		this->func = f;
 		ll s = vec.size();
 		ll col = floor(log2(s));
-		table.resize(col+1);
+		table.resize(col + 1);
 		table[0].resize(s);
 		rep(i, s)
 			table[0][i] = vec[i];
 		rrep(k, col) {
-			ll g = pow(2, k-1);
+			ll g = pow(2, k - 1);
 			table[k].resize(s);
 			rep(i, s - (g * 2 - 1)) {
 				table[k][i] = f(table[k - 1][i], table[k - 1][i + g]);
@@ -59,16 +59,16 @@ public:
 
 	bool query(ll l, ll r) {
 		ll g = floor(log2(r));
-		ll ret = this->func(table[g][l],table[g][l+r-pow(2,g)]);
+		ll ret = this->func(table[g][l], table[g][l + r - pow(2, g)]);
 		return (ret > 1);
 	}
 };
 
 void solveTest() {
-	int res = 1;
+	int res = 0;
 	int n; cin >> n;
 	vector<ll> a(n);
-	vector<ll> d(n-1);
+	vector<ll> d(n - 1);
 	rep(i, n) cin >> a[i];
 	if (n == 1) {
 		cout << 1 << "\n";
@@ -77,7 +77,7 @@ void solveTest() {
 	rep(i, n - 1) d[i] = abs(a[i] - a[i + 1]);
 	SparseTable st = SparseTable(d, myGcd);
 	for (int i = 0; i < n - 1; i++) {
-		for (int j = res+1; j < n - i; j++) {
+		for (int j = res + 1; j < n - i; j++) {
 			if (st.query(i, j)) res = j;
 			else break;
 		}

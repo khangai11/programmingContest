@@ -19,8 +19,8 @@ using namespace std;
 #define ll long long
 #define INF ((1<<30)-1)
 #define MOD 1000000007
-#define rep(a,b) for(int a=0;a<b;++a)
-#define rrep(a,b) for(int a=1;a<=b;++a)
+#define rep(a,b) for(ll a=0;a<b;++a)
+#define rrep(a,b) for(ll a=1;a<=b;++a)
 
 
 class UnionFindTree {
@@ -87,21 +87,33 @@ public:
 			v[i] = v[i * 2 + 1] + v[i * 2 + 2];
 		return v[0];
 	}
-
-	void increaseNode(int ind, ll val) {
-		ll prev = v[ind + n - 1];
-		updateNode(ind, val + prev);
+	/// <summary>
+	/// add val to value[index]
+	/// </summary>
+	void addValue(int ind, ll val) {
+		for (int i = (ind + n - 1); i != 0; i = (i - 1) / 2) {
+			v[i] += val;
+		}
+		v[0] += val;
 	}
-
+	/// <summary>
+	/// set value[ind] to val
+	/// </summary>
 	void updateNode(int ind, ll val) {
 		ll prev = v[ind + n - 1];
 		ll dif = val - prev;
-		for (int i = (ind + n - 1); i != 0; i = (i - 1) / 2) {
-			v[i] += dif;
-		}
-		v[0] += dif;
+		addValue(ind, dif);
 	}
 
+	/// <summary>
+	/// query sum of [l,r] from [st,en] range
+	/// </summary>
+	/// <param name="ind"></param>
+	/// <param name="st"></param>
+	/// <param name="en"></param>
+	/// <param name="l"></param>
+	/// <param name="r"></param>
+	/// <returns></returns>
 	ll queryInternal(int ind, int st, int en, int l, int r) {
 		if (st >= l && en <= r)
 			return v[ind];
@@ -112,19 +124,26 @@ public:
 			queryInternal(ind * 2 + 2, mid + 1, en, l, r);
 	}
 
+	/// <summary>
+	/// returns sum between [l,r]
+	/// </summary>
 	ll query(int l, int r) {
 		return queryInternal(0, 0, n - 1, l, r);
 	}
 
+	/// <summary>
+	/// returns minimum x which is SUM(0,x) >= sum
+	/// ind should be 0
+	/// </summary>
 	int querySumIndex(int ind, ll sum) {
 		int left, right;
 		left = ind * 2 + 1;
 		right = left + 1;
 		if (ind >= n - 1) {
-			return ind;
+			return (ind-n+1);
 		}
-		if (v[ind] < sum)
-			return 0;
+		//if (v[ind] < sum)
+		//	return 0;
 		if (v[left] >= sum) {
 			return querySumIndex(left, sum);
 		}
@@ -195,17 +214,61 @@ public:
 
 
 int main() {
-	int n,a;
-	cin >> n;
-	BITree t(100100);
-	ll v = 0;
-	rrep(i, n) {
-		cin >> a;
-		t.add(a, 1);
-		int left = i-t.query(a);
-		int right = n-a - left;
-		v += min(left, right);
+	ll n; cin >> n;
+	int c;
+	vector<ll> b(n,0),a(n,0);
+	map<int, int> mp,mpi;
+	//1,2,3,4,5 < a
+	//1,4,3,2,5 < b
+	rep(i, n) {
+		cin >> c;
+		mp[c] = i;
+		mpi[i] = c;
 	}
-	cout << v <<endl;
+	rep(i, n) {
+		cin >> c;
+		b[i] = mp[c];
+	}
+	//0,1,2,3,4 < a
+	//0,3,2,1,4 < b
+	ll dist = 0;
+	segmentTree st(n+1);
+	mp.clear();
+	rep(i, n) {
+		st.updateNode(b[i], 1);
+		int les = st.query(0, b[i]);
+		dist += (i - les+1);
+		mp[b[i]] = (i - les + 1);
+	}
+	if (dist % 2 != 0) {
+		cout << "-1\n";
+		return 0;
+	}
+	else {
+		dist /= 2;
+		rep(i, n) {
+			if (mp[i] >= dist) {
+				mp[i] -= dist;
+				dist = 0;
+				break;
+			}
+			else {
+				dist -= mp[i];
+				mp[i] = 0;
+			}
+		}
+		segmentTree st1(n);
+		rep(i, n) st1.setNode(i, 1);
+		st1.calculateTree();
+		rep(i, n) {
+			int ind = st1.querySumIndex(0, 1 + mp[i]);
+			st1.updateNode(ind, 0);
+			b[ind] = i;
+		}
+
+		rep(i, n) {
+			cout << mpi[b[i]] << " ";
+		}
+	}
 	return 0;
 }

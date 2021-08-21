@@ -21,7 +21,9 @@ using namespace std;
 #define MOD 1000000007
 #define rep(a,b) for(ll a=0;a<b;++a)
 #define rrep(a,b) for(ll a=1;a<=b;++a)
-
+#define vll	vector<ll>
+#define vi vector<int>
+#define vb vector<bool>
 
 class UnionFindTree {
 public:
@@ -71,11 +73,13 @@ class segmentTree {
 public:
 	vector<ll> v;
 	int n;
+	ll(*func)(ll, ll);
 
-	segmentTree(int s) {
+	segmentTree(int s, ll(*f)(ll, ll)) {
 		n = 1;
 		while (n < s) n *= 2;
 		v.resize(2 * n, 0);
+		func = f;
 	}
 
 	void setNode(int ind, ll val) {
@@ -84,25 +88,23 @@ public:
 
 	ll calculateTree() {
 		for (int i = n - 2; i >= 0; i--)
-			v[i] = v[i * 2 + 1] + v[i * 2 + 2];
+			v[i] = func(v[i * 2 + 1], v[i * 2 + 2]);
 		return v[0];
 	}
 	/// <summary>
 	/// add val to value[index]
 	/// </summary>
 	void addValue(int ind, ll val) {
-		for (int i = (ind + n - 1); i != 0; i = (i - 1) / 2) {
-			v[i] += val;
-		}
-		v[0] += val;
+		updateNode(ind, val + v[ind + n - 1]);
 	}
 	/// <summary>
 	/// set value[ind] to val
 	/// </summary>
 	void updateNode(int ind, ll val) {
-		ll prev = v[ind + n - 1];
-		ll dif = val - prev;
-		addValue(ind, dif);
+		v[ind + n - 1] = val;
+		for (int i = (ind + n - 2) / 2; i != 0; i = (i - 1) / 2) {
+			v[i] = func(v[i * 2 + 1], v[i * 2 + 2]);
+		}
 	}
 
 	/// <summary>
@@ -120,8 +122,8 @@ public:
 		if (l > en || r < st)
 			return 0;
 		int mid = st + (en - st) / 2;
-		return queryInternal(ind * 2 + 1, st, mid, l, r) +
-			queryInternal(ind * 2 + 2, mid + 1, en, l, r);
+		return func(queryInternal(ind * 2 + 1, st, mid, l, r),
+			queryInternal(ind * 2 + 2, mid + 1, en, l, r));
 	}
 
 	/// <summary>
@@ -140,7 +142,7 @@ public:
 		left = ind * 2 + 1;
 		right = left + 1;
 		if (ind >= n - 1) {
-			return (ind-n+1);
+			return (ind - n + 1);
 		}
 		//if (v[ind] < sum)
 		//	return 0;
@@ -153,20 +155,50 @@ public:
 	}
 };
 
+
+ll st_gcd(ll a, ll b) {
+	return gcd(a, b);
+}
+
+ll st_min(ll a, ll b) {
+	return min(a, b);
+}
+
+ll st_max(ll a, ll b) {
+	return max(a, b);
+}
+
+ll st_and(ll a, ll b) {
+	return (a & b);
+}
+
+ll st_or(ll a, ll b) {
+	return (a | b);
+}
+
+ll st_sum(ll a, ll b) {
+	return (a + b);
+}
+
+/// <summary>
+/// index starts 0
+/// </summary>
 class SparseTable {
-	vector< vector<ll> > table;
-	ll(*func)(ll, ll);
 
 public:
+	vector< vector<ll> > table;
+	ll(*func)(ll, ll);
+	ll deep = 0;
+
 	SparseTable(vector<ll> vec, ll(*f)(ll, ll)) {
 		this->func = f;
 		ll s = vec.size();
-		ll col = floor(log2(s));
-		table.resize(col + 1);
+		deep = floor(log2(s));
+		table.resize(deep + 1);
 		table[0].resize(s);
 		rep(i, s)
 			table[0][i] = vec[i];
-		rrep(k, col) {
+		rrep(k, deep) {
 			ll g = pow(2, k - 1);
 			table[k].resize(s);
 			rep(i, s - (g * 2 - 1)) {
@@ -175,20 +207,30 @@ public:
 		}
 	}
 
-	bool query(ll l, ll r) {
-		ll g = floor(log2(r));
-		ll ret = this->func(table[g][l], table[g][l + r - pow(2, g)]);
-		return (ret > 1);
+	/// <summary>
+	/// index starts 0
+	/// </summary>
+	/// <param name="st">index of start pos</param>
+	/// <param name="size">size of query</param>
+	/// <returns></returns>
+	ll query(ll st, ll size) {
+		ll g = floor(log2(size));
+		ll ret = this->func(table[g][st], table[g][st + size - pow(2, g)]);
+		return ret;
 	}
+
 };
 
+/// <summary>
+/// index starts 1
+/// </summary>
 class BITree {
 public:
 	vector<ll> v;
 	int sz;
 
 	BITree(int n) {
-		v.resize(n + 1,0);
+		v.resize(n + 1, 0);
 		sz = n;
 	}
 
@@ -212,63 +254,41 @@ public:
 	}
 };
 
-
-int main() {
-	ll n; cin >> n;
-	int c;
-	vector<ll> b(n,0),a(n,0);
-	map<int, int> mp,mpi;
-	//1,2,3,4,5 < a
-	//1,4,3,2,5 < b
-	rep(i, n) {
-		cin >> c;
-		mp[c] = i;
-		mpi[i] = c;
-	}
-	rep(i, n) {
-		cin >> c;
-		b[i] = mp[c];
-	}
-	//0,1,2,3,4 < a
-	//0,3,2,1,4 < b
-	ll dist = 0;
-	segmentTree st(n+1);
-	mp.clear();
-	rep(i, n) {
-		st.updateNode(b[i], 1);
-		int les = st.query(0, b[i]);
-		dist += (i - les+1);
-		mp[b[i]] = (i - les + 1);
-	}
-	if (dist % 2 != 0) {
-		cout << "-1\n";
-		return 0;
-	}
-	else {
-		dist /= 2;
-		rep(i, n) {
-			if (mp[i] >= dist) {
-				mp[i] -= dist;
-				dist = 0;
+vector<ll> primes;
+void prepare() {
+	primes.push_back(2);
+	primes.push_back(3);
+	for (ll i = 5; i < 100100; i += 2) {
+		int j = 0;
+		bool isprime = true;
+		while (primes[j] * primes[j] <= i) {
+			if (i % primes[j] == 0) {
+				isprime = false;
 				break;
 			}
-			else {
-				dist -= mp[i];
-				mp[i] = 0;
-			}
+			j++;
 		}
-		segmentTree st1(n);
-		rep(i, n) st1.setNode(i, 1);
-		st1.calculateTree();
-		rep(i, n) {
-			int ind = st1.querySumIndex(0, 1 + mp[i]);
-			st1.updateNode(ind, 0);
-			b[ind] = i;
-		}
+		if (isprime)
+			primes.push_back(i);
+	}
+}
 
-		rep(i, n) {
-			cout << mpi[b[i]] << " ";
+int main() {
+	ios::sync_with_stdio(0); cin.tie(0);
+	int q; cin >> q;
+	int t, x;
+	segmentTree st(200100,st_sum);
+	rep(i, q) {
+		cin >> t >> x;
+		if (t == 1) {
+			st.updateNode(x, 1);
+		}
+		else {
+			int re = st.querySumIndex(0, x);
+			st.updateNode(re, 0);
+			cout << re << "\n";
 		}
 	}
+
 	return 0;
 }

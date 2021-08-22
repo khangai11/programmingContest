@@ -18,7 +18,7 @@ using namespace std;
 
 #define ll long long
 #define INF ((1<<30)-1)
-#define MOD 1000000007
+#define MOD 998244353
 #define rep(a,b) for(ll a=0;a<b;++a)
 #define rrep(a,b) for(ll a=1;a<=b;++a)
 #define vll	vector<ll>
@@ -69,20 +69,24 @@ public:
 
 };
 
+template <typename T>
 class segmentTree {
 public:
-	vector<ll> v;
+	vector<T> v;
 	int n;
-	ll(*func)(ll, ll);
+	T(*func)(T, T);
 
-	segmentTree(int s, ll(*f)(ll, ll)) {
+	segmentTree(int s, T(*f)(T, T)) {
 		n = 1;
 		while (n < s) n *= 2;
 		v.resize(2 * n, 0);
 		func = f;
 	}
-
-	void setNode(int ind, ll val) {
+	/// <summary>
+	/// use this before calculateTree()
+	/// index starts 0
+	/// </summary>
+	void setNode(int ind, T val) {
 		v[ind + n - 1] = val;
 	}
 
@@ -93,14 +97,16 @@ public:
 	}
 	/// <summary>
 	/// add val to value[index]
+	/// index starts 0
 	/// </summary>
-	void addValue(int ind, ll val) {
+	void addValue(int ind, T val) {
 		updateNode(ind, val + v[ind + n - 1]);
 	}
 	/// <summary>
 	/// set value[ind] to val
+	/// index starts 0
 	/// </summary>
-	void updateNode(int ind, ll val) {
+	void updateNode(int ind, T val) {
 		v[ind + n - 1] = val;
 		for (int i = (ind + n - 2) / 2; i != 0; i = (i - 1) / 2) {
 			v[i] = func(v[i * 2 + 1], v[i * 2 + 2]);
@@ -110,13 +116,8 @@ public:
 	/// <summary>
 	/// query sum of [l,r] from [st,en] range
 	/// </summary>
-	/// <param name="ind"></param>
-	/// <param name="st"></param>
-	/// <param name="en"></param>
-	/// <param name="l"></param>
-	/// <param name="r"></param>
 	/// <returns></returns>
-	ll queryInternal(int ind, int st, int en, int l, int r) {
+	T queryInternal(int ind, int st, int en, int l, int r) {
 		if (st >= l && en <= r)
 			return v[ind];
 		if (l > en || r < st)
@@ -128,8 +129,11 @@ public:
 
 	/// <summary>
 	/// returns sum between [l,r]
+	/// index starts 0
 	/// </summary>
-	ll query(int l, int r) {
+	T query(int l, int r) {
+		if (l > r)
+			return 0;
 		return queryInternal(0, 0, n - 1, l, r);
 	}
 
@@ -155,29 +159,44 @@ public:
 	}
 };
 
-
-ll st_gcd(ll a, ll b) {
+template <typename T>
+T my_gcd(T a, T b) {
 	return gcd(a, b);
 }
 
-ll st_min(ll a, ll b) {
+template <typename T>
+T my_min(T a, T b) {
 	return min(a, b);
 }
 
-ll st_max(ll a, ll b) {
+template <typename T>
+T my_max(T a, T b) {
 	return max(a, b);
 }
 
-ll st_and(ll a, ll b) {
+template <typename T>
+T my_and(T a, T b) {
 	return (a & b);
 }
 
-ll st_or(ll a, ll b) {
+template <typename T>
+T my_xor(T a, T b) {
+	return (a ^ b);
+}
+
+template <typename T>
+T my_or(T a, T b) {
 	return (a | b);
 }
 
-ll st_sum(ll a, ll b) {
+template <typename T>
+T my_sum(T a, T b) {
 	return (a + b);
+}
+
+template <typename T>
+T my_sum_mod(T a, T b) {
+	return (a + b)%MOD;
 }
 
 /// <summary>
@@ -255,13 +274,14 @@ public:
 };
 
 vector<ll> primes;
-void prepare() {
+void prepare(int max_val) {
 	primes.push_back(2);
 	primes.push_back(3);
-	for (ll i = 5; i < 100100; i += 2) {
+	for (ll i = 5; i <= max_val; i += 2) {
 		int j = 0;
+		ll max_val = sqrt(i);
 		bool isprime = true;
-		while (primes[j] * primes[j] <= i) {
+		while (primes[j] <= max_val) {
 			if (i % primes[j] == 0) {
 				isprime = false;
 				break;
@@ -273,22 +293,22 @@ void prepare() {
 	}
 }
 
+
+void solve() {
+	ll n; cin >> n;
+	ll sqrtn = sqrt(n);
+	ll v = 0;
+	rrep(k, sqrtn) {
+		ll tmp = ((n / k)+k)/2-(k-1);
+		v = (v + tmp) % MOD;
+	}
+	cout << v << "\n";
+}
+
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
-	int q; cin >> q;
-	int t, x;
-	segmentTree st(200100,st_sum);
-	rep(i, q) {
-		cin >> t >> x;
-		if (t == 1) {
-			st.updateNode(x, 1);
-		}
-		else {
-			int re = st.querySumIndex(0, x);
-			st.updateNode(re, 0);
-			cout << re << "\n";
-		}
-	}
-
+	//int test; cin >> test;
+	//while (test--)
+		solve();
 	return 0;
 }

@@ -157,6 +157,10 @@ public:
 			return querySumIndex(right, sum - v[left]);
 		}
 	}
+	T getValue(int ind) {
+		return v[ind + n - 1];
+	}
+
 };
 
 template <typename T>
@@ -294,21 +298,43 @@ void prepare(int max_val) {
 }
 
 
+int n, q;
+vi b;
+
 void solve() {
-	ll n; cin >> n;
-	ll sqrtn = sqrt(n);
-	ll v = 0;
-	rrep(k, sqrtn) {
-		ll tmp = ((n / k)+k)/2-(k-1);
-		v = (v + tmp) % MOD;
+	cin >> n >> q;
+	string s; cin >> s;
+	b.resize(n + 1);
+	rep(i, n) {
+		int v = -1;
+		if (s[i] == '+') v = 1;
+		if (i % 2 == 1) v = -v;
+		b[i + 1] = b[i]+v;
 	}
-	cout << v << "\n";
+	rep(_q, q) {
+		int l, r;
+		int num = 0;
+		int del[2] = { 0,0 };
+		cin >> l >> r;
+
+		int sum = b[r] - b[l];
+		if (sum == 0) {
+			cout << "0\n";
+			continue;
+		}
+		if ((r - l + 1) % 2 == 0) {
+			del[1] = r;
+			num++;
+			r--;
+		}
+
+	}
 }
 
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
-	//int test; cin >> test;
-	//while (test--)
+	int test; cin >> test;
+	while (test--)
 		solve();
 	return 0;
 }

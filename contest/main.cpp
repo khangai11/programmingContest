@@ -12,29 +12,33 @@
 #include<set>
 #include<numeric>
 #include<bitset>
+#include<iomanip>
 
 
 using namespace std;
 
 #define ll long long
-#define INF ((1<<30)-1)
-#define MOD 998244353
+#define INF ((1LL<<60)-1)
+#define MOD 1000000007
 #define rep(a,b) for(ll a=0;a<b;++a)
 #define rrep(a,b) for(ll a=1;a<=b;++a)
 #define vll	vector<ll>
 #define vi vector<int>
 #define vb vector<bool>
+#define M_PI           3.141592653589793238462643383279502884L
 
 class UnionFindTree {
 public:
 	vector<int> parent;
 	vector<int> union_size;
+	vector<ll> w;
 	int len;
 	ll value = 0;
 
 	UnionFindTree(int n) {
 		len = n;
 		parent.resize(n + 1, 0);
+		w.resize(n + 1, 0);
 		union_size.resize(n + 1, 1);
 		value = 0;
 		rrep(i, n) parent[i] = i;
@@ -47,6 +51,15 @@ public:
 		return parent[a];
 	}
 
+	void setWeight(int a, ll we) {
+		w[a] = we;
+	}
+
+	ll getWeight(int a) {
+		int ra = root(a);
+		return w[ra];
+	}
+
 	void join(int a, int b) {
 		int ra = root(a);
 		int rb = root(b);
@@ -55,10 +68,12 @@ public:
 		if (union_size[ra] > union_size[rb]) {
 			parent[rb] = ra;
 			union_size[ra] += union_size[rb];
+			w[ra] += w[rb];
 		}
 		else {
 			parent[ra] = rb;
 			union_size[rb] += union_size[ra];
+			w[rb] += w[ra];
 		}
 		len--;
 	}
@@ -79,7 +94,7 @@ public:
 	segmentTree(int s, T(*f)(T, T)) {
 		n = 1;
 		while (n < s) n *= 2;
-		v.resize(2 * n, 0);
+		v.resize(2 * n, 100100100100100100);
 		func = f;
 	}
 	/// <summary>
@@ -102,6 +117,10 @@ public:
 	void addValue(int ind, T val) {
 		updateNode(ind, val + v[ind + n - 1]);
 	}
+
+	T getValue(int ind) {
+		return v[ind + n - 1];
+	}
 	/// <summary>
 	/// set value[ind] to val
 	/// index starts 0
@@ -111,6 +130,7 @@ public:
 		for (int i = (ind + n - 2) / 2; i != 0; i = (i - 1) / 2) {
 			v[i] = func(v[i * 2 + 1], v[i * 2 + 2]);
 		}
+		v[0] = func(v[1], v[2]);
 	}
 
 	/// <summary>
@@ -121,7 +141,7 @@ public:
 		if (st >= l && en <= r)
 			return v[ind];
 		if (l > en || r < st)
-			return 0;
+			return 100100100100100100;
 		int mid = st + (en - st) / 2;
 		return func(queryInternal(ind * 2 + 1, st, mid, l, r),
 			queryInternal(ind * 2 + 2, mid + 1, en, l, r));
@@ -157,51 +177,16 @@ public:
 			return querySumIndex(right, sum - v[left]);
 		}
 	}
-	T getValue(int ind) {
-		return v[ind + n - 1];
-	}
-
 };
 
-template <typename T>
-T my_gcd(T a, T b) {
-	return gcd(a, b);
-}
-
-template <typename T>
-T my_min(T a, T b) {
-	return min(a, b);
-}
-
-template <typename T>
-T my_max(T a, T b) {
-	return max(a, b);
-}
-
-template <typename T>
-T my_and(T a, T b) {
-	return (a & b);
-}
-
-template <typename T>
-T my_xor(T a, T b) {
-	return (a ^ b);
-}
-
-template <typename T>
-T my_or(T a, T b) {
-	return (a | b);
-}
-
-template <typename T>
-T my_sum(T a, T b) {
-	return (a + b);
-}
-
-template <typename T>
-T my_sum_mod(T a, T b) {
-	return (a + b)%MOD;
-}
+template <typename T> T my_gcd(T a, T b) { return gcd(a, b); }
+template <typename T> T my_min(T a, T b) { return min(a, b); }
+template <typename T> T my_max(T a, T b) { return max(a, b); }
+template <typename T> T my_and(T a, T b) { return (a & b); }
+template <typename T> T my_xor(T a, T b) { return (a ^ b); }
+template <typename T> T my_or(T a, T b) { return (a | b); }
+template <typename T> T my_sum(T a, T b) { return (a + b); }
+template <typename T> T my_sum_mod(T a, T b) { return (a + b) % MOD; }
 
 /// <summary>
 /// index starts 0
@@ -277,6 +262,7 @@ public:
 	}
 };
 
+
 vector<ll> primes;
 void prepare(int max_val) {
 	primes.push_back(2);
@@ -298,43 +284,82 @@ void prepare(int max_val) {
 }
 
 
-int n, q;
-vi b;
+ll n, m, k, s, t, c;
+vector<pair<ll, int>> t1, t2;
+ll maxk = 0, mink = 0;
+vector<vector<ll>> ma,mb;
+
+ll findCost(ll a, ll b, ll d) {
+	if (d <= mink) {
+		return (t1[mink - 1].first * a + t2[k-mink-1].first*b);
+	}
+	if (d >= maxk) {
+		return (t1[maxk - 1].first * a + t2[k - maxk - 1].first * b);
+	}
+	return (t1[d - 1].first * a + t2[k - d - 1].first * b);
+}
+
+
+//baruun tiishee yavah bol return 1
+int bs_compare(ll target, ll b) {
+	if (target > b) return 1;
+	else if (target < b) return -1;
+	else return 0;//equal
+}
+
+
+ll my_binary_search(vi &v, int size, ll target) {
+	if (size == 0) {
+		size = v.size();
+	}
+	ll ans = -1;
+	int l = 0;
+	int r = size - 1;
+	int mid;
+	while (l <= r) {
+		mid = l + (r - l) / 2;
+		int val = bs_compare(target, v[mid]);
+		if (val == 0) {
+			ans = mid;
+			r = mid - 1;
+			break;
+		}
+		else if (val > 0) {
+			//ans = mid;
+			l = mid + 1;
+		}
+		else {
+			//ans = mid;
+			r = mid - 1;
+		}
+	}
+	return ans;
+}
+
 
 void solve() {
-	cin >> n >> q;
-	string s; cin >> s;
-	b.resize(n + 1);
+	ll n, l,b;
+	cin >> n >> l;
+	vll a;
 	rep(i, n) {
-		int v = -1;
-		if (s[i] == '+') v = 1;
-		if (i % 2 == 1) v = -v;
-		b[i + 1] = b[i]+v;
+		cin >> b;
+		a.push_back(b);
 	}
-	rep(_q, q) {
-		int l, r;
-		int num = 0;
-		int del[2] = { 0,0 };
-		cin >> l >> r;
-
-		int sum = b[r] - b[l];
-		if (sum == 0) {
-			cout << "0\n";
-			continue;
-		}
-		if ((r - l + 1) % 2 == 0) {
-			del[1] = r;
-			num++;
-			r--;
-		}
-
+	sort(a.begin(), a.end());
+	ll ans = max(2*a[0], 2*(l - a[n - 1]));
+	rrep(i, n-1) {
+		ans = max(ans, (a[i] - a[i - 1]));
 	}
+	cout << fixed <<((double)ans/2.0);
 }
+
 
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
-	int test; cin >> test;
-	while (test--)
+	int test;
+	//cin >> test;
+	//for (int t = 1; t <= test; t++)
 		solve();
 	return 0;
 }
+

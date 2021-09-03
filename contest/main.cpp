@@ -17,11 +17,16 @@
 
 using namespace std;
 
+#ifdef _DEBUG
+#define prnt(a) cout<<a<<endl
+#else
+#define prnt(a) (void)0
+#endif // _DEBUG
+
 #define ll long long
 #define INF ((1LL<<60)-1)
 #define MOD 1000000007
-#define rep(a,b) for(ll a=0;a<b;++a)
-#define rrep(a,b) for(ll a=1;a<=b;++a)
+#define rep(i,st,en) for(ll i=st;i<en;++i)
 #define vll	vector<ll>
 #define vi vector<int>
 #define vb vector<bool>
@@ -41,7 +46,7 @@ public:
 		w.resize(n + 1, 0);
 		union_size.resize(n + 1, 1);
 		value = 0;
-		rrep(i, n) parent[i] = i;
+		rep(i,0, n) parent[i] = i;
 	}
 
 	int root(int a) {
@@ -204,12 +209,12 @@ public:
 		deep = floor(log2(s));
 		table.resize(deep + 1);
 		table[0].resize(s);
-		rep(i, s)
+		rep(i,0, s)
 			table[0][i] = vec[i];
-		rrep(k, deep) {
+		rep(k,1, deep) {
 			ll g = pow(2, k - 1);
 			table[k].resize(s);
-			rep(i, s - (g * 2 - 1)) {
+			rep(i, 0, s - (g * 2 - 1)) {
 				table[k][i] = f(table[k - 1][i], table[k - 1][i + g]);
 			}
 		}
@@ -284,22 +289,6 @@ void prepare(int max_val) {
 }
 
 
-ll n, m, k, s, t, c;
-vector<pair<ll, int>> t1, t2;
-ll maxk = 0, mink = 0;
-vector<vector<ll>> ma,mb;
-
-ll findCost(ll a, ll b, ll d) {
-	if (d <= mink) {
-		return (t1[mink - 1].first * a + t2[k-mink-1].first*b);
-	}
-	if (d >= maxk) {
-		return (t1[maxk - 1].first * a + t2[k - maxk - 1].first * b);
-	}
-	return (t1[d - 1].first * a + t2[k - d - 1].first * b);
-}
-
-
 //baruun tiishee yavah bol return 1
 int bs_compare(ll target, ll b) {
 	if (target > b) return 1;
@@ -337,20 +326,14 @@ ll my_binary_search(vi &v, int size, ll target) {
 }
 
 
+
+
 void solve() {
-	ll n, l,b;
-	cin >> n >> l;
-	vll a;
-	rep(i, n) {
-		cin >> b;
-		a.push_back(b);
-	}
-	sort(a.begin(), a.end());
-	ll ans = max(2*a[0], 2*(l - a[n - 1]));
-	rrep(i, n-1) {
-		ans = max(ans, (a[i] - a[i - 1]));
-	}
-	cout << fixed <<((double)ans/2.0);
+	int h, n;
+	cin >> n;
+	vi a(n), b(n);
+	rep(i, 0, n) cin >> a[i];
+	rep(i, 0, n) prnt(a[i]);
 }
 
 

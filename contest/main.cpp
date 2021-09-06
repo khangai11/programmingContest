@@ -44,6 +44,10 @@ template <class T> auto& operator>>(istream & is, vector<T> &xs) {
 	for (auto& x : xs) is >> x;
 	return is;
 }
+template <class T,class Y> auto& operator>>(istream& is, vector<pair<T,Y>>& xs) {
+	for (auto& [x1,x2] : xs) is >> x1>>x2;
+	return is;
+}
 template <class  ...Args>
 auto& read(Args & ...args) { return (cin >> ... >> args); }
 template <class  ...Args>
@@ -346,9 +350,10 @@ ll my_binary_search(vi &v, int size, ll target) {
 }
 
 void solve() {
-	int rd(a,b,c);
-	vi rdv(d, a);
-	rep(i, 0, a) cout << d[i] <<" ";
+	int rd(n);
+	vector<pair<int, char>> rdv(b, n);
+	rep(i,0,n)
+		cout << b[i].first<<" "<<b[i].second <<"\n";
 }
 
 

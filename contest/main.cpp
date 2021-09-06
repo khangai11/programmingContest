@@ -24,13 +24,32 @@ using namespace std;
 #endif // _DEBUG
 
 #define ll long long
-#define INF ((1LL<<60)-1)
-#define MOD 1000000007
-#define rep(i,st,en) for(ll i=st;i<en;++i)
+#define INF (1LL<<30)
+#define INFLL (1LL<<60)
+//#define MOD 1000000007
+#define MOD 998244353
+#define rep(i,st,en) for(int i=st;i<en;++i)
 #define vll	vector<ll>
+#define vvll	vector<vll>
 #define vi vector<int>
+#define vvi vector<vi>
 #define vb vector<bool>
+#define vvb vector<vb>
 #define M_PI           3.141592653589793238462643383279502884L
+#define all(v) (v).begin(), (v).end()
+
+#define rd(...) __VA_ARGS__; read(__VA_ARGS__)
+#define rdv(value,...) value(__VA_ARGS__);cin >> value
+template <class T> auto& operator>>(istream & is, vector<T> &xs) {
+	for (auto& x : xs) is >> x;
+	return is;
+}
+template <class  ...Args>
+auto& read(Args & ...args) { return (cin >> ... >> args); }
+template <class  ...Args>
+auto& write(Args & ...args) { return (cout << ... << args); }
+
+
 
 class UnionFindTree {
 public:
@@ -95,11 +114,12 @@ public:
 	vector<T> v;
 	int n;
 	T(*func)(T, T);
+	T defval = 0;
 
 	segmentTree(int s, T(*f)(T, T)) {
 		n = 1;
 		while (n < s) n *= 2;
-		v.resize(2 * n, 100100100100100100);
+		v.resize(2 * n, defval);
 		func = f;
 	}
 	/// <summary>
@@ -146,7 +166,7 @@ public:
 		if (st >= l && en <= r)
 			return v[ind];
 		if (l > en || r < st)
-			return 100100100100100100;
+			return defval;
 		int mid = st + (en - st) / 2;
 		return func(queryInternal(ind * 2 + 1, st, mid, l, r),
 			queryInternal(ind * 2 + 2, mid + 1, en, l, r));
@@ -325,23 +345,17 @@ ll my_binary_search(vi &v, int size, ll target) {
 	return ans;
 }
 
-
-
-
 void solve() {
-	int h, n;
-	cin >> n;
-	vi a(n), b(n);
-	rep(i, 0, n) cin >> a[i];
-	rep(i, 0, n) prnt(a[i]);
+	int rd(a,b,c);
+	vi rdv(d, a);
+	rep(i, 0, a) cout << d[i] <<" ";
 }
 
 
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
 	int test;
-	//cin >> test;
-	//for (int t = 1; t <= test; t++)
+	//cin >> test; for (int t = 1; t <= test; t++)
 		solve();
 	return 0;
 }

@@ -18,7 +18,7 @@
 using namespace std;
 
 #ifdef _DEBUG
-#define prnt(a) cout<<a<<endl
+#define prnt(a) cout<<#a<<"="<<a<<endl
 #else
 #define prnt(a) (void)0
 #endif // _DEBUG
@@ -44,14 +44,23 @@ template <class T> auto& operator>>(istream & is, vector<T> &xs) {
 	for (auto& x : xs) is >> x;
 	return is;
 }
+template <class T> auto& operator<<(ostream& is, vector<T>& xs) {
+	for (auto& x : xs) is << x << " ";
+	return is;
+}
 template <class T,class Y> auto& operator>>(istream& is, vector<pair<T,Y>>& xs) {
 	for (auto& [x1,x2] : xs) is >> x1>>x2;
 	return is;
 }
-template <class  ...Args>
-auto& read(Args & ...args) { return (cin >> ... >> args); }
-template <class  ...Args>
-auto& write(Args & ...args) { return (cout << ... << args); }
+template <class  ...Args> auto& read(Args & ...args) { return (cin >> ... >> args); }
+
+#define write(...) writemy(__VA_ARGS__);cout<<"\n"
+void writemy() {}
+template <typename Head, class  ...Args>
+void writemy(Head& head, Args & ...args) {
+	cout << head << " ";
+	writemy(args...);
+}
 
 
 
@@ -349,11 +358,134 @@ ll my_binary_search(vi &v, int size, ll target) {
 	return ans;
 }
 
+
+class lazySegmentTree {
+public:
+	vll v;
+	vll b, c;
+	int n;
+	ll defval = 0;
+
+	lazySegmentTree(int s) {
+		n = 1;
+		while (n < s) n *= 2;
+		v.resize(2 * n, defval);
+		b.resize(2 * n, 1);
+		c.resize(2 * n, defval);
+	}
+	
+	void setNode(int ind, ll val) {
+		v[ind + n - 1] = val;
+	}
+
+	ll calculateTree() {
+		for (int i = n - 2; i >= 0; i--)
+			v[i] = (v[i * 2 + 1] + v[i * 2 + 2])%MOD;
+		return v[0];
+	}
+	
+	ll updateNodeRange(int ind, int st, int en, int us, int ue, ll bb, ll cc) {
+		if (us > en || ue < st) {
+			return (v[ind]*b[ind]+c[ind])%MOD;
+		}
+		if (st == en) {
+			ll bbb = (b[ind] * bb) % MOD;
+			ll ccc = (c[ind] * bb + cc) % MOD;
+			v[ind] = (v[ind] * bbb + ccc) % MOD;
+			b[ind] = 1;
+			c[ind] = 0;
+			return v[ind];
+		}
+		if (b[ind] != 1 || c[ind] != 0) {
+			int len = en - st + 1;
+			ll bbb = b[ind];
+			ll ccc = c[ind];
+			b[ind] = 1;
+			c[ind] = 0;
+			v[ind] = (v[ind] * bbb + ccc * len) % MOD;
+			int ch = ind * 2 + 1;
+			b[ch] = (b[ch] * bbb) % MOD;
+			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
+			ch = ind * 2 + 2;
+			b[ch] = (b[ch] * bbb) % MOD;
+			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
+		}
+		if (us <= st && en<=ue) {	
+			int len = en - st + 1;
+			ll bbb = (bb) % MOD;
+			ll ccc = (cc) % MOD;
+			b[ind] = 1;
+			c[ind] = 0;
+			v[ind] = (v[ind] * bbb + ccc * len) % MOD;
+			int ch = ind * 2 + 1;
+			b[ch] = (b[ch] * bbb) % MOD;
+			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
+			ch = ind * 2 + 2;
+			b[ch] = (b[ch] * bbb) % MOD;
+			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
+			return v[ind];
+		}
+		int mid = st + (en - st) / 2;
+		ll v1 = updateNodeRange(ind * 2 + 1, st, mid, us, ue, bb, cc);
+		ll v2 = updateNodeRange(ind * 2 + 2, mid + 1, en, us, ue, bb, cc);
+		return v[ind] = (v1+v2)%MOD;
+	}
+
+	ll queryInternal(int ind, int st, int en, int l, int r) {
+		if (r < st || l >= en) return 0LL;
+		if (st >= l && en <= r) {
+			if (b[ind] != 1 || c[ind] != 0) {
+				ll len = (en - st + 1);
+				v[ind] = (v[ind] * b[ind] + c[ind]*len) % MOD;
+				if (st != en) {//pass to child
+					int ch = ind * 2 + 1;
+					b[ch] = (b[ch] * b[ind])%MOD;
+					c[ch] = (c[ch] * b[ind] + c[ind])%MOD;
+					ch = ind * 2 + 2;
+					b[ch] = (b[ch] * b[ind])%MOD;
+					c[ch] = (c[ch] * b[ind] + c[ind])%MOD;
+				}
+				b[ind] = 1;
+				c[ind] = 0;
+			}
+			return v[ind];
+		}
+		int mid = st + (en - st) / 2;
+		return (queryInternal(ind * 2 + 1, st, mid, l, r)+
+			queryInternal(ind * 2 + 2, mid + 1, en, l, r))%MOD;
+	}
+
+	ll query(int l, int r) {
+		if (l > r)
+			return 0;
+		return queryInternal(0, 0, n - 1, l, r);
+	}
+
+	void updateRange(int l, int r, ll bb, ll cc) {
+		if (l > r)
+			return;
+		updateNodeRange(0, 0, n - 1, l, r,bb,cc);
+	}
+};
+
 void solve() {
-	int rd(n);
-	vector<pair<int, char>> rdv(b, n);
-	rep(i,0,n)
-		cout << b[i].first<<" "<<b[i].second <<"\n";
+	int rd(n, q);
+	lazySegmentTree s(n + 1);
+	rep(i, 0, n) {
+		ll rd(a);
+		s.setNode(i, a);
+	}
+	s.calculateTree();
+	rep(i, 0, q) {
+		int rd(t, l, r);
+		if (t == 0) {
+			ll rd(b, c);
+			s.updateRange(l, r - 1, b, c);
+		}
+		else {
+			cout << s.query(l, r - 1) << "\n";
+		}
+	}
 }
 
 

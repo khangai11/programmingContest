@@ -384,70 +384,70 @@ public:
 		return v[0];
 	}
 	
-	ll updateNodeRange(int ind, int st, int en, int us, int ue, ll bb, ll cc) {
-		if (us > en || ue < st) {
-			return (v[ind]*b[ind]+c[ind])%MOD;
-		}
-		if (st == en) {
-			ll bbb = (b[ind] * bb) % MOD;
-			ll ccc = (c[ind] * bb + cc) % MOD;
-			v[ind] = (v[ind] * bbb + ccc) % MOD;
-			b[ind] = 1;
-			c[ind] = 0;
-			return v[ind];
-		}
+	void updateNodeRange(int ind, int st, int en, int us, int ue, ll bb, ll cc) {
+		//update value if there is update
 		if (b[ind] != 1 || c[ind] != 0) {
 			int len = en - st + 1;
-			ll bbb = b[ind];
-			ll ccc = c[ind];
+			v[ind] = (v[ind] * b[ind] + len*c[ind]) % MOD;
+			if (st != en) {
+				int ch = 2 * ind + 1;
+				b[ch] = (b[ch] * b[ind]) % MOD;
+				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
+				ch = 2 * ind + 2;
+				b[ch] = (b[ch] * b[ind]) % MOD;
+				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
+			}
 			b[ind] = 1;
 			c[ind] = 0;
-			v[ind] = (v[ind] * bbb + ccc * len) % MOD;
-			int ch = ind * 2 + 1;
-			b[ch] = (b[ch] * bbb) % MOD;
-			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
-			ch = ind * 2 + 2;
-			b[ch] = (b[ch] * bbb) % MOD;
-			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
 		}
-		if (us <= st && en<=ue) {	
+		if (us > en || ue < st) {
+			//out of range
+			return;
+		}
+		if (us <= st && en <= ue) {
+			//completely inside
 			int len = en - st + 1;
-			ll bbb = (bb) % MOD;
-			ll ccc = (cc) % MOD;
+			v[ind] = (v[ind] * bb + len * cc) % MOD;
+			if (st != en) {
+				int ch = 2 * ind + 1;
+				b[ch] = (b[ch] * bb) % MOD;
+				c[ch] = (c[ch] * bb + cc) % MOD;
+				ch = 2 * ind + 2;
+				b[ch] = (b[ch] * bb) % MOD;
+				c[ch] = (c[ch] * bb + cc) % MOD;
+			}
 			b[ind] = 1;
 			c[ind] = 0;
-			v[ind] = (v[ind] * bbb + ccc * len) % MOD;
-			int ch = ind * 2 + 1;
-			b[ch] = (b[ch] * bbb) % MOD;
-			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
-			ch = ind * 2 + 2;
-			b[ch] = (b[ch] * bbb) % MOD;
-			c[ch] = ((c[ch] * bbb) + ccc) % MOD;
-			return v[ind];
+			return;
 		}
+		//intersect
 		int mid = st + (en - st) / 2;
-		ll v1 = updateNodeRange(ind * 2 + 1, st, mid, us, ue, bb, cc);
-		ll v2 = updateNodeRange(ind * 2 + 2, mid + 1, en, us, ue, bb, cc);
-		return v[ind] = (v1+v2)%MOD;
+		updateNodeRange(ind * 2 + 1, st, mid, us, ue, bb, cc);
+		updateNodeRange(ind * 2 + 2, mid + 1, en, us, ue, bb, cc);
+		v[ind] = (v[ind*2+1]+v[ind*2+2])%MOD;
 	}
 
 	ll queryInternal(int ind, int st, int en, int l, int r) {
-		if (r < st || l >= en) return 0LL;
-		if (st >= l && en <= r) {
-			if (b[ind] != 1 || c[ind] != 0) {
-				ll len = (en - st + 1);
-				v[ind] = (v[ind] * b[ind] + c[ind]*len) % MOD;
-				if (st != en) {//pass to child
-					int ch = ind * 2 + 1;
-					b[ch] = (b[ch] * b[ind])%MOD;
-					c[ch] = (c[ch] * b[ind] + c[ind])%MOD;
-					ch = ind * 2 + 2;
-					b[ch] = (b[ch] * b[ind])%MOD;
-					c[ch] = (c[ch] * b[ind] + c[ind])%MOD;
-				}
-				b[ind] = 1;
-				c[ind] = 0;
+		if (b[ind] != 1 || c[ind] != 0) {
+			int len = en - st + 1;
+			v[ind] = (v[ind] * b[ind] + len * c[ind]) % MOD;
+			if (st != en) {
+				int ch = 2 * ind + 1;
+				b[ch] = (b[ch] * b[ind]) % MOD;
+				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
+				ch = 2 * ind + 2;
+				b[ch] = (b[ch] * b[ind]) % MOD;
+				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
 			}
+			b[ind] = 1;
+			c[ind] = 0;
+		}
+		if (r < st || l >= en) {
+			//out of range
+			return 0LL;
+		}
+		if (l <= st && en <= r) {
+			//completely inside
 			return v[ind];
 		}
 		int mid = st + (en - st) / 2;

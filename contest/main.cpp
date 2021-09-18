@@ -24,10 +24,11 @@ using namespace std;
 #endif // _DEBUG
 
 #define ll long long
+#define ld long double
 #define INF (1LL<<30)
 #define INFLL (1LL<<60)
-//#define MOD 1000000007
-#define MOD 998244353
+#define MOD 1000000007
+#define MOD2 998244353
 #define rep(i,st,en) for(int i=st;i<en;++i)
 #define vll	vector<ll>
 #define vvll	vector<vll>
@@ -35,29 +36,36 @@ using namespace std;
 #define vvi vector<vi>
 #define vb vector<bool>
 #define vvb vector<vb>
-#define M_PI           3.141592653589793238462643383279502884L
+#define MY_PI           3.141592653589793238462643383279502884L
 #define all(v) (v).begin(), (v).end()
 
 #define rd(...) __VA_ARGS__; read(__VA_ARGS__)
 #define rdv(value,...) value(__VA_ARGS__);cin >> value
-template <class T> auto& operator>>(istream & is, vector<T> &xs) {
+template <class T> auto& operator>>(istream& is, vector<T>& xs) {
 	for (auto& x : xs) is >> x;
 	return is;
 }
-template <class T> auto& operator<<(ostream& is, vector<T>& xs) {
-	for (auto& x : xs) is << x << " ";
-	return is;
+template <class T> auto& operator<<(ostream& os, vector<T>& xs) {
+	int sz = xs.size();
+	rep(i, 0, sz) os << xs[i] << " \n"[i + 1 == sz];
+	return os;
 }
-template <class T,class Y> auto& operator>>(istream& is, vector<pair<T,Y>>& xs) {
-	for (auto& [x1,x2] : xs) is >> x1>>x2;
-	return is;
+template <class T, class Y> auto& operator<<(ostream& os, pair<T, Y>& xs) {
+	os << "{" << xs.first << ", " << xs.second << "}";
+	return os;
 }
-template <class  ...Args> auto& read(Args & ...args) { return (cin >> ... >> args); }
+template <class T, class Y> auto& operator>>(istream& is, vector<pair<T, Y>>& xs) {
+	for (auto& [x1, x2] : xs) is >> x1 >> x2;
+	return is;
+
+}
+template <class  ...Args>
+auto& read(Args & ...args) { return (cin >> ... >> args); }
 
 #define write(...) writemy(__VA_ARGS__);cout<<"\n"
 void writemy() {}
 template <typename Head, class  ...Args>
-void writemy(Head& head, Args & ...args) {
+void writemy(const Head& head, const Args & ...args) {
 	cout << head << " ";
 	writemy(args...);
 }
@@ -78,7 +86,7 @@ public:
 		w.resize(n + 1, 0);
 		union_size.resize(n + 1, 1);
 		value = 0;
-		rep(i,0, n) parent[i] = i;
+		rep(i, 0, n) parent[i] = i;
 	}
 
 	int root(int a) {
@@ -242,9 +250,9 @@ public:
 		deep = floor(log2(s));
 		table.resize(deep + 1);
 		table[0].resize(s);
-		rep(i,0, s)
+		rep(i, 0, s)
 			table[0][i] = vec[i];
-		rep(k,1, deep) {
+		rep(k, 1, deep) {
 			ll g = pow(2, k - 1);
 			table[k].resize(s);
 			rep(i, 0, s - (g * 2 - 1)) {
@@ -330,7 +338,7 @@ int bs_compare(ll target, ll b) {
 }
 
 
-ll my_binary_search(vi &v, int size, ll target) {
+ll my_binary_search(vi& v, int size, ll target) {
 	if (size == 0) {
 		size = v.size();
 	}
@@ -358,132 +366,230 @@ ll my_binary_search(vi &v, int size, ll target) {
 	return ans;
 }
 
+ll modInverse(ll a, ll m)
+{
+	ll m0 = m;
+	ll y = 0, x = 1;
 
-class lazySegmentTree {
+	if (m == 1)
+		return 0;
+
+	while (a > 1) {
+		// q is quotient
+		int q = a / m;
+		int t = m;
+
+		// m is remainder now, process same as
+		// Euclid's algo
+		m = a % m, a = t;
+		t = y;
+
+		// Update y and x
+		y = x - q * y;
+		x = t;
+	}
+
+	// Make x positive
+	if (x < 0)
+		x += m0;
+
+	return x;
+}
+
+
+class LazyPart {
 public:
-	vll v;
-	vll b, c;
-	int n;
-	ll defval = 0;
+	bool a;
 
-	lazySegmentTree(int s) {
-		n = 1;
-		while (n < s) n *= 2;
-		v.resize(2 * n, defval);
-		b.resize(2 * n, 1);
-		c.resize(2 * n, defval);
-	}
-	
-	void setNode(int ind, ll val) {
-		v[ind + n - 1] = val;
+	LazyPart() {
+		a = false;
 	}
 
-	ll calculateTree() {
-		for (int i = n - 2; i >= 0; i--)
-			v[i] = (v[i * 2 + 1] + v[i * 2 + 2])%MOD;
-		return v[0];
-	}
-	
-	void updateNodeRange(int ind, int st, int en, int us, int ue, ll bb, ll cc) {
-		//update value if there is update
-		if (b[ind] != 1 || c[ind] != 0) {
-			int len = en - st + 1;
-			v[ind] = (v[ind] * b[ind] + len*c[ind]) % MOD;
-			if (st != en) {
-				int ch = 2 * ind + 1;
-				b[ch] = (b[ch] * b[ind]) % MOD;
-				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
-				ch = 2 * ind + 2;
-				b[ch] = (b[ch] * b[ind]) % MOD;
-				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
-			}
-			b[ind] = 1;
-			c[ind] = 0;
-		}
-		if (us > en || ue < st) {
-			//out of range
-			return;
-		}
-		if (us <= st && en <= ue) {
-			//completely inside
-			int len = en - st + 1;
-			v[ind] = (v[ind] * bb + len * cc) % MOD;
-			if (st != en) {
-				int ch = 2 * ind + 1;
-				b[ch] = (b[ch] * bb) % MOD;
-				c[ch] = (c[ch] * bb + cc) % MOD;
-				ch = 2 * ind + 2;
-				b[ch] = (b[ch] * bb) % MOD;
-				c[ch] = (c[ch] * bb + cc) % MOD;
-			}
-			b[ind] = 1;
-			c[ind] = 0;
-			return;
-		}
-		//intersect
-		int mid = st + (en - st) / 2;
-		updateNodeRange(ind * 2 + 1, st, mid, us, ue, bb, cc);
-		updateNodeRange(ind * 2 + 2, mid + 1, en, us, ue, bb, cc);
-		v[ind] = (v[ind*2+1]+v[ind*2+2])%MOD;
+	LazyPart(bool aa) {
+		a = aa;
 	}
 
-	ll queryInternal(int ind, int st, int en, int l, int r) {
-		if (b[ind] != 1 || c[ind] != 0) {
-			int len = en - st + 1;
-			v[ind] = (v[ind] * b[ind] + len * c[ind]) % MOD;
-			if (st != en) {
-				int ch = 2 * ind + 1;
-				b[ch] = (b[ch] * b[ind]) % MOD;
-				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
-				ch = 2 * ind + 2;
-				b[ch] = (b[ch] * b[ind]) % MOD;
-				c[ch] = (c[ch] * b[ind] + c[ind]) % MOD;
-			}
-			b[ind] = 1;
-			c[ind] = 0;
-		}
-		if (r < st || l >= en) {
-			//out of range
-			return 0LL;
-		}
-		if (l <= st && en <= r) {
-			//completely inside
-			return v[ind];
-		}
-		int mid = st + (en - st) / 2;
-		return (queryInternal(ind * 2 + 1, st, mid, l, r)+
-			queryInternal(ind * 2 + 2, mid + 1, en, l, r))%MOD;
+	LazyPart& operator=(const LazyPart& other) {
+		a = other.a;
+		return *this;
 	}
 
-	ll query(int l, int r) {
-		if (l > r)
-			return 0;
-		return queryInternal(0, 0, n - 1, l, r);
-	}
-
-	void updateRange(int l, int r, ll bb, ll cc) {
-		if (l > r)
-			return;
-		updateNodeRange(0, 0, n - 1, l, r,bb,cc);
+	void reset() {
+		a = false;
 	}
 };
 
-void solve() {
-	int rd(n, q);
-	lazySegmentTree s(n + 1);
+class LazyReal {
+public:
+	ll inv = 0;
+	ll c0 = 0;
+	ll c1 = 0;
+
+	LazyReal() {
+		inv = c0 = c1 = 0;
+	}
+
+	LazyReal(ll pinv, ll pc0, ll pc1) {
+		inv = pinv;
+		c0 = pc0;
+		c1 = pc1;
+	}
+
+	LazyReal& operator=(const LazyReal& other) {
+		inv = other.inv;
+		c0 = other.c0;
+		c1 = other.c1;
+		return *this;
+	}
+
+	void reset() {
+		c0 = c1 = inv = 0;
+	}
+};
+
+
+class lazySegmentTree {
+public:
+	vector<LazyReal> v;
+	vector<LazyPart> z;
+	LazyReal dummyReal;
+	LazyPart dummyLazy;
+
+	vb islazy;
+	int n;
+	LazyReal defval = dummyReal;
+
+	lazySegmentTree(int size) {
+		n = 1;
+		while (n < size) n *= 2;
+		v.resize(2 * n, dummyReal);
+		z.resize(2 * n, dummyLazy);
+		islazy.resize(2 * n, false);
+	}
+
+	lazySegmentTree(int size, LazyReal defReal, LazyPart deflazy) {
+		n = 1;
+		while (n < size) n *= 2;
+		defval = defReal;
+		v.resize(2 * n, defReal);
+		z.resize(2 * n, deflazy);
+		islazy.resize(2 * n, false);
+	}
+
+	//gol function a-ni urd taliih
+	LazyReal func(LazyReal& a,LazyReal& b) {
+		LazyReal r = dummyReal;
+		r.c0 = a.c0 + b.c0;
+		r.c1 = a.c1 + b.c1;
+		r.inv = a.inv + b.inv + a.c1 * b.c0;
+		return r;
+	}
+
+	//a-g b-eer shinechlene.
+	void applyLazy(LazyReal& a, LazyPart& b, int len) {
+		if (b.a == false) return;
+		LazyReal t = a;
+		a.c0 = t.c1;
+		a.c1 = t.c0;
+		a.inv = t.c1 * t.c0 - t.inv;
+	}
+	//a-g b-eer shinechlene.
+	void passDownLazy(LazyPart& a, LazyPart& b) {
+		a.a = (a.a != b.a);
+	}
+
+
+	void passDown(int ind, ll len) {
+		if (!islazy[ind]) return;
+		LazyPart t = z[ind];
+		z[ind].reset();
+		//update current value
+		applyLazy(v[ind], t,len);
+		islazy[ind] = false;
+		
+		if (ind >= n - 1) return;
+		
+		//update lazy part of childs
+		int d = ind * 2 + 1;
+		passDownLazy(z[d], t);
+		islazy[d] = true;
+		d = ind * 2 + 2;
+		passDownLazy(z[d], t);
+		islazy[d] = true;
+	}
+	
+	void setNode(int ind, LazyReal val) {
+		v[ind + n - 1] = val;
+	}
+
+	void calculateTree() {
+		for (int i = n - 2; i >= 0; i--)
+			v[i] = func(v[i * 2 + 1] , v[i * 2 + 2]);
+	}
+
+	LazyReal queryInternal(int ind, int st, int en, int us, int ue) {
+		passDown(ind, en - st + 1);
+		if (ue < st || en < us) return defval;
+		if (us <= st && en <= ue) return v[ind];
+		int mid = st + (en - st) / 2;
+		LazyReal t1 = queryInternal(ind * 2 + 1, st, mid, us, ue);
+		LazyReal t2 = queryInternal(ind * 2 + 2, mid + 1, en, us, ue);
+		return func(t1,t2);
+	}
+
+	LazyReal query(int us, int ue) {
+		return queryInternal(0, 0, n - 1, us, ue);
+	}
+
+	void updateRangeInternal(int ind, int st, int en, int us, int ue, LazyPart val) {
+		passDown(ind, en - st + 1);
+		if (ue < st || en < us) return;
+		if (us <= st && en <= ue) {
+			z[ind] = val;
+			islazy[ind] = true;
+			passDown(ind,en-st+1);
+			return;
+		}
+		int mid = st + (en - st) / 2;
+		updateRangeInternal(ind * 2 + 1, st, mid, us, ue, val);
+		updateRangeInternal(ind * 2 + 2, mid + 1, en, us, ue, val);
+		v[ind] = func(v[ind * 2 + 1], v[ind * 2 + 2]);
+		return;
+	}
+
+	void updateRange(int us, int ue, LazyPart val) {
+		updateRangeInternal(0, 0, n - 1, us, ue, val);
+	}
+
+};
+
+void solve(int test) {
+	ll rd(n, q);
+	lazySegmentTree st(n + 1);
+	LazyPart z;
+	LazyReal v;
 	rep(i, 0, n) {
 		ll rd(a);
-		s.setNode(i, a);
-	}
-	s.calculateTree();
-	rep(i, 0, q) {
-		int rd(t, l, r);
-		if (t == 0) {
-			ll rd(b, c);
-			s.updateRange(l, r - 1, b, c);
+		if (a == 0) {
+			v.c0 = 1;
+			v.c1 = 0;
 		}
 		else {
-			cout << s.query(l, r - 1) << "\n";
+			v.c0 = 0;
+			v.c1 = 1;
+		}
+		st.setNode(i, v);
+	}
+	st.calculateTree();
+	rep(i, 0, q) {
+		ll rd(ty,l,r);
+		if (ty == 1) {
+			z.a = true;
+			st.updateRange(l-1,r-1,z);
+		}
+		else {
+			LazyReal t = st.query(l - 1, r - 1);
+			cout << t.inv << "\n";
 		}
 	}
 }
@@ -492,8 +598,8 @@ void solve() {
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
 	int test;
-	//cin >> test; for (int t = 1; t <= test; t++)
-		solve();
+	//cin >> test;
+	//for (int t = 1; t <= test; t++)
+	solve(0);
 	return 0;
 }
-

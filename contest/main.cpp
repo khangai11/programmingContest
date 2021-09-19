@@ -135,7 +135,7 @@ public:
 	vector<T> v;
 	int n;
 	T(*func)(T, T);
-	T defval = 0;
+	T defval = 200100;
 
 	segmentTree(int s, T(*f)(T, T)) {
 		n = 1;
@@ -240,7 +240,7 @@ template <typename T> T my_sum_mod(T a, T b) { return (a + b) % MOD; }
 class SparseTable {
 
 public:
-	vector< vector<ll> > table;
+	vvll table;
 	ll(*func)(ll, ll);
 	ll deep = 0;
 
@@ -252,7 +252,7 @@ public:
 		table[0].resize(s);
 		rep(i, 0, s)
 			table[0][i] = vec[i];
-		rep(k, 1, deep) {
+		rep(k, 1, deep + 1) {
 			ll g = pow(2, k - 1);
 			table[k].resize(s);
 			rep(i, 0, s - (g * 2 - 1)) {
@@ -399,51 +399,46 @@ ll modInverse(ll a, ll m)
 
 class LazyPart {
 public:
-	bool a;
+
 
 	LazyPart() {
-		a = false;
 	}
 
-	LazyPart(bool aa) {
-		a = aa;
+	LazyPart(ll aa) {
 	}
 
 	LazyPart& operator=(const LazyPart& other) {
-		a = other.a;
 		return *this;
 	}
 
 	void reset() {
-		a = false;
 	}
 };
 
 class LazyReal {
 public:
-	ll inv = 0;
-	ll c0 = 0;
-	ll c1 = 0;
+	ll val = 0;
+	int k = 0;//minimum value's index
 
 	LazyReal() {
-		inv = c0 = c1 = 0;
+		val = 0;
+		k = 0;
 	}
 
-	LazyReal(ll pinv, ll pc0, ll pc1) {
-		inv = pinv;
-		c0 = pc0;
-		c1 = pc1;
+	LazyReal(ll v) {
+		val = v;
+		k = 0;
 	}
 
 	LazyReal& operator=(const LazyReal& other) {
-		inv = other.inv;
-		c0 = other.c0;
-		c1 = other.c1;
+		val = other.val;
+		k = other.k;
 		return *this;
 	}
 
 	void reset() {
-		c0 = c1 = inv = 0;
+		val = 0;
+		k = 0;
 	}
 };
 
@@ -476,26 +471,31 @@ public:
 		islazy.resize(2 * n, false);
 	}
 
-	//gol function a-ni urd taliih
-	LazyReal func(LazyReal& a,LazyReal& b) {
+	//gol function
+	//a-ni urd taliih
+	//need to implement
+	LazyReal func(LazyReal& a, LazyReal& b) {
 		LazyReal r = dummyReal;
-		r.c0 = a.c0 + b.c0;
-		r.c1 = a.c1 + b.c1;
-		r.inv = a.inv + b.inv + a.c1 * b.c0;
+		if (a.val >= b.val) {
+			r.k = b.k;
+			r.val = b.val;
+		}
+		else {
+			r.k = a.k;
+			r.val = a.val;
+		}
 		return r;
 	}
 
 	//a-g b-eer shinechlene.
+	//need to implement
 	void applyLazy(LazyReal& a, LazyPart& b, int len) {
-		if (b.a == false) return;
-		LazyReal t = a;
-		a.c0 = t.c1;
-		a.c1 = t.c0;
-		a.inv = t.c1 * t.c0 - t.inv;
+		//a.val += b.a;
 	}
 	//a-g b-eer shinechlene.
+	//need to implement
 	void passDownLazy(LazyPart& a, LazyPart& b) {
-		a.a = (a.a != b.a);
+		//a.a += b.a;
 	}
 
 
@@ -504,11 +504,11 @@ public:
 		LazyPart t = z[ind];
 		z[ind].reset();
 		//update current value
-		applyLazy(v[ind], t,len);
+		applyLazy(v[ind], t, len);
 		islazy[ind] = false;
-		
+
 		if (ind >= n - 1) return;
-		
+
 		//update lazy part of childs
 		int d = ind * 2 + 1;
 		passDownLazy(z[d], t);
@@ -517,14 +517,14 @@ public:
 		passDownLazy(z[d], t);
 		islazy[d] = true;
 	}
-	
+
 	void setNode(int ind, LazyReal val) {
 		v[ind + n - 1] = val;
 	}
 
 	void calculateTree() {
 		for (int i = n - 2; i >= 0; i--)
-			v[i] = func(v[i * 2 + 1] , v[i * 2 + 2]);
+			v[i] = func(v[i * 2 + 1], v[i * 2 + 2]);
 	}
 
 	LazyReal queryInternal(int ind, int st, int en, int us, int ue) {
@@ -534,11 +534,11 @@ public:
 		int mid = st + (en - st) / 2;
 		LazyReal t1 = queryInternal(ind * 2 + 1, st, mid, us, ue);
 		LazyReal t2 = queryInternal(ind * 2 + 2, mid + 1, en, us, ue);
-		return func(t1,t2);
+		return func(t1, t2);
 	}
 
 	LazyReal query(int us, int ue) {
-		return queryInternal(0, 0, n - 1, us, ue);
+		return  queryInternal(0, 0, n - 1, us, ue);
 	}
 
 	void updateRangeInternal(int ind, int st, int en, int us, int ue, LazyPart val) {
@@ -547,7 +547,7 @@ public:
 		if (us <= st && en <= ue) {
 			z[ind] = val;
 			islazy[ind] = true;
-			passDown(ind,en-st+1);
+			passDown(ind, en - st + 1);
 			return;
 		}
 		int mid = st + (en - st) / 2;
@@ -563,35 +563,27 @@ public:
 
 };
 
+
+
 void solve(int test) {
-	ll rd(n, q);
-	lazySegmentTree st(n + 1);
-	LazyPart z;
-	LazyReal v;
-	rep(i, 0, n) {
-		ll rd(a);
-		if (a == 0) {
-			v.c0 = 1;
-			v.c1 = 0;
-		}
-		else {
-			v.c0 = 0;
-			v.c1 = 1;
-		}
-		st.setNode(i, v);
+	int rd(n, k);
+	vi rdv(c, n);
+	map<int, int> m;
+	int ans = 0;
+	int v = 0;
+	rep(i, 0, k) {
+		m[c[i]]++;
+		if (m[c[i]] == 1) v++;
 	}
-	st.calculateTree();
-	rep(i, 0, q) {
-		ll rd(ty,l,r);
-		if (ty == 1) {
-			z.a = true;
-			st.updateRange(l-1,r-1,z);
-		}
-		else {
-			LazyReal t = st.query(l - 1, r - 1);
-			cout << t.inv << "\n";
-		}
+	ans = v;
+	rep(i, k, n) {
+		m[c[i]]++;
+		if (m[c[i]] == 1) v++;
+		m[c[i - k]]--;
+		if (m[c[i - k]] == 0) v--;
+		ans = max(ans, v);
 	}
+	cout << ans;
 }
 
 
@@ -600,6 +592,6 @@ int main() {
 	int test;
 	//cin >> test;
 	//for (int t = 1; t <= test; t++)
-	solve(0);
+		solve(0);
 	return 0;
 }

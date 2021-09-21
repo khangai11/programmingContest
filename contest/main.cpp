@@ -36,6 +36,10 @@ using namespace std;
 #define vvi vector<vi>
 #define vb vector<bool>
 #define vvb vector<vb>
+#define pii	pair<int,int>
+#define pll pair<ll,ll>
+#define vpii vector<pii>
+#define vpll vector<pll>
 #define MY_PI           3.141592653589793238462643383279502884L
 #define all(v) (v).begin(), (v).end()
 
@@ -135,7 +139,7 @@ public:
 	vector<T> v;
 	int n;
 	T(*func)(T, T);
-	T defval = 200100;
+	T defval = 0;
 
 	segmentTree(int s, T(*f)(T, T)) {
 		n = 1;
@@ -563,35 +567,92 @@ public:
 
 };
 
+ll lis(vll& v, ll maxVal) {
+	int n = v.size();
+	vll dp(n, maxVal);
+	for (int i = 0; i < n; i++) {
+		//not acceptable same number
+		//int x = (upper_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
+		//accept same number
+		int x = (lower_bound(dp.begin(),dp.end(), v[i])-dp.begin());
+		dp[x] = v[i];
+	}
+	return (lower_bound(dp.begin(),dp.end(), maxVal)-dp.begin());
+}
+
+vvll a;
+vll maxvals;
+int n;
+
+ll calcCost(vi ind) {
+	ll c = 0;
+	rep(i, 0, n) {
+		c += maxvals[i] - a[i][ind[i]];
+	}
+	return c;
+}
+
+vi mergeTwo(vi ind1, vi ind2) {
+	vi r;
+	rep(i, 0, n) {
+		r.push_back(min(ind1[i], ind2[i]));
+	}
+	return r;
+}
 
 
 void solve(int test) {
-	int rd(n, k);
-	vi rdv(c, n);
-	map<int, int> m;
-	int ans = 0;
-	int v = 0;
-	rep(i, 0, k) {
-		m[c[i]]++;
-		if (m[c[i]] == 1) v++;
+	read(n);
+	set<vi> banned;
+	a.resize(n);
+	vi p(n);
+	maxvals.resize(n);
+
+	rep(i, 0, n) {
+		int rd(c);
+		p[i] = c;
+		a[i].resize(c+1);
+		rep(j, 0, c) cin >> a[i][j+1];
+		maxvals[i] = a[i][c];
 	}
-	ans = v;
-	rep(i, k, n) {
-		m[c[i]]++;
-		if (m[c[i]] == 1) v++;
-		m[c[i - k]]--;
-		if (m[c[i - k]] == 0) v--;
-		ans = max(ans, v);
+	int rd(m);
+	rep(i, 0, m) {
+		vi rdv(b, n);
+		banned.insert(b);
 	}
-	cout << ans;
+	priority_queue<pair<ll, vi>> pq;	//loss, ali slotoos ali boltol avah ve.
+	set<vi> done;
+	ll cost = 0;
+	pq.push({ cost,p });
+	while (1) {
+		auto it = pq.top();
+		pq.pop();
+		if (banned.find(it.second) == banned.end()) {
+			rep(i, 0, n) {
+				cout << it.second[i] << " ";
+			}
+			return;
+		}
+		done.insert(it.second);
+		vi t = it.second;
+		rep(i, 0, n) {
+			if (t[i] > 1) {
+				vi p1 = t;
+				p1[i]--;
+				if (done.find(p1) == done.end()) {
+					pq.push({ -calcCost(p1),p1 });
+					done.insert(p1);
+				}
+			}
+		}
+	}
 }
 
 
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
 	int test;
-	//cin >> test;
-	//for (int t = 1; t <= test; t++)
+	//cin >> test; for (int t = 1; t <= test; t++)
 		solve(0);
 	return 0;
 }

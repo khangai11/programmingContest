@@ -10,6 +10,8 @@
 #include<list>
 #include<deque>
 #include<set>
+#include<unordered_set>
+#include<unordered_map>
 #include<numeric>
 #include<bitset>
 #include<iomanip>
@@ -40,6 +42,7 @@ using namespace std;
 #define pll pair<ll,ll>
 #define vpii vector<pii>
 #define vpll vector<pll>
+#define VS vector<string>
 #define MY_PI           3.141592653589793238462643383279502884L
 #define all(v) (v).begin(), (v).end()
 
@@ -90,7 +93,7 @@ public:
 		w.resize(n + 1, 0);
 		union_size.resize(n + 1, 1);
 		value = 0;
-		rep(i, 0, n) parent[i] = i;
+		rep(i, 0, n + 1) parent[i] = i;
 	}
 
 	int root(int a) {
@@ -313,25 +316,6 @@ public:
 };
 
 
-vector<ll> primes;
-void prepare(int max_val) {
-	primes.push_back(2);
-	primes.push_back(3);
-	for (ll i = 5; i <= max_val; i += 2) {
-		int j = 0;
-		ll max_val = sqrt(i);
-		bool isprime = true;
-		while (primes[j] <= max_val) {
-			if (i % primes[j] == 0) {
-				isprime = false;
-				break;
-			}
-			j++;
-		}
-		if (isprime)
-			primes.push_back(i);
-	}
-}
 
 
 //baruun tiishee yavah bol return 1
@@ -368,6 +352,33 @@ ll my_binary_search(vi& v, int size, ll target) {
 		}
 	}
 	return ans;
+}
+
+vll fact, invfact, inv;
+
+void initFacts(ll n,ll m) {
+	fact.resize(n + 1);
+	invfact.resize(n + 1);
+	inv.resize(n+1);
+	fact[0] = 1;
+	invfact[0] = 1;
+	inv[0] = 1;
+	inv[1] = 1;
+	rep(i, 1, n + 1) {
+		fact[i] = (fact[i - 1] * i) % m;
+	}
+	rep(i, 2, n + 1) {
+		inv[i] = -inv[m % i] * (m / i) % m;
+		if (inv[i] < 0) inv[i] += m;
+	}
+	rep(i, 1, n + 1) {
+		invfact[i] = invfact[i - 1] * inv[i] % m;
+	}
+}
+
+ll nCk(ll n, ll k) {
+	ll v = (((fact[n] * invfact[k]) % MOD) * invfact[n - k]) % MOD;
+	return v;
 }
 
 ll modInverse(ll a, ll m)
@@ -421,28 +432,23 @@ public:
 
 class LazyReal {
 public:
-	ll val = 0;
-	int k = 0;//minimum value's index
+	unordered_set<int> s;
 
 	LazyReal() {
-		val = 0;
-		k = 0;
+		s.clear();
 	}
 
-	LazyReal(ll v) {
-		val = v;
-		k = 0;
+	LazyReal(int v) {
+		s.insert(v);
 	}
 
 	LazyReal& operator=(const LazyReal& other) {
-		val = other.val;
-		k = other.k;
+		s = other.s;
 		return *this;
 	}
 
 	void reset() {
-		val = 0;
-		k = 0;
+		s.clear();
 	}
 };
 
@@ -457,6 +463,9 @@ public:
 	vb islazy;
 	int n;
 	LazyReal defval = dummyReal;
+
+	lazySegmentTree() {
+	}
 
 	lazySegmentTree(int size) {
 		n = 1;
@@ -480,14 +489,8 @@ public:
 	//need to implement
 	LazyReal func(LazyReal& a, LazyReal& b) {
 		LazyReal r = dummyReal;
-		if (a.val >= b.val) {
-			r.k = b.k;
-			r.val = b.val;
-		}
-		else {
-			r.k = a.k;
-			r.val = a.val;
-		}
+		r.s = a.s;
+		r.s.insert(b.s.begin(), b.s.end());
 		return r;
 	}
 
@@ -574,85 +577,63 @@ ll lis(vll& v, ll maxVal) {
 		//not acceptable same number
 		//int x = (upper_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
 		//accept same number
-		int x = (lower_bound(dp.begin(),dp.end(), v[i])-dp.begin());
+		int x = (lower_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
 		dp[x] = v[i];
 	}
-	return (lower_bound(dp.begin(),dp.end(), maxVal)-dp.begin());
+	return (lower_bound(dp.begin(), dp.end(), maxVal) - dp.begin());
 }
 
-vvll a;
-vll maxvals;
-int n;
 
-ll calcCost(vi ind) {
-	ll c = 0;
-	rep(i, 0, n) {
-		c += maxvals[i] - a[i][ind[i]];
+
+vector<ll> primes;
+void prepare(int max_val) {
+	primes.push_back(2);
+	primes.push_back(3);
+	for (ll i = 5; i <= max_val; i += 2) {
+		int j = 0;
+		ll max_val = sqrt(i);
+		bool isprime = true;
+		while (primes[j] <= max_val) {
+			if (i % primes[j] == 0) {
+				isprime = false;
+				break;
+			}
+			j++;
+		}
+		if (isprime)
+			primes.push_back(i);
 	}
-	return c;
 }
-
-vi mergeTwo(vi ind1, vi ind2) {
-	vi r;
-	rep(i, 0, n) {
-		r.push_back(min(ind1[i], ind2[i]));
-	}
-	return r;
-}
-
 
 void solve(int test) {
-	read(n);
-	set<vi> banned;
-	a.resize(n);
-	vi p(n);
-	maxvals.resize(n);
-
+	ll rd(n, k);
+	initFacts(n, MOD);
+	vll rdv(a, n);
+	sort(all(a));
+	ll val = 1;
+	ll ans = 0;
 	rep(i, 0, n) {
-		int rd(c);
-		p[i] = c;
-		a[i].resize(c+1);
-		rep(j, 0, c) cin >> a[i][j+1];
-		maxvals[i] = a[i][c];
-	}
-	int rd(m);
-	rep(i, 0, m) {
-		vi rdv(b, n);
-		banned.insert(b);
-	}
-	priority_queue<pair<ll, vi>> pq;	//loss, ali slotoos ali boltol avah ve.
-	set<vi> done;
-	ll cost = 0;
-	pq.push({ cost,p });
-	while (1) {
-		auto it = pq.top();
-		pq.pop();
-		if (banned.find(it.second) == banned.end()) {
-			rep(i, 0, n) {
-				cout << it.second[i] << " ";
-			}
-			return;
+		if (i >= (k-1)) {
+			ll v = nCk(i, k-1);
+			v = (v * a[i]) % MOD;
+			ans = (ans + v) % MOD;
 		}
-		done.insert(it.second);
-		vi t = it.second;
-		rep(i, 0, n) {
-			if (t[i] > 1) {
-				vi p1 = t;
-				p1[i]--;
-				if (done.find(p1) == done.end()) {
-					pq.push({ -calcCost(p1),p1 });
-					done.insert(p1);
-				}
-			}
+		if (i <= (n - k)) {
+			ll v = nCk(n-(i+1), k - 1);
+			v = (v * a[i]) % MOD;
+			ans = (ans - v) % MOD;
 		}
 	}
+	cout << ans;
 }
 
 
 int main() {
+	//freopen("input.txt", "r", stdin);
 	ios::sync_with_stdio(0); cin.tie(0);
-	int test;
-	//cin >> test; for (int t = 1; t <= test; t++)
+	int test = 1;
+	//cin >> test;
+	for (int t = 1; t <= test; t++)
 		solve(0);
 	return 0;
 }

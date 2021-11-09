@@ -569,64 +569,36 @@ void prepare(int max_val) {
 
 
 void solve(int test) {
-	int rd(x, y);
-	string rd(w);
-	VS rdv(c,9);
-	VS rc(9);
-	rep(i, 0, 9) {
-		rc[i] = c[i];
-		reverse(rc[i].begin(), rc[i].end());
+	ll rd(n);
+	vll rdv(a, n);
+	vll ans(n);
+	rep(i, 0, n) {
+		ll aoki = -10000;
+		ll taka = -10000;
+		rep(j, 0, n) {
+			if (i == j) continue;
+			ll ao = 0;
+			ll ta = 0;
+			rep(k, 0, max(i, j) - min(i, j) + 1) {
+				if (k % 2 == 0) {
+					ta += a[min(i,j)+k];
+				}
+				else {
+					ao += a[min(i, j) + k];
+				}
+			}
+			if (ao > aoki) {
+				aoki = ao;
+				taka = ta;
+			}
+		}
+		ans[i] = taka;
 	}
-	rep(i, 0, 9) {
-		c[i] = rc[i].substr(0,8) + c[i] + rc[i].substr(1, 8);
+	ll v = -10000;
+	rep(i, 0, n) {
+		v = max(v, ans[i]);
 	}
-	VS d(25);
-	rep(i, 0, 8) {
-		d[i] = c[8 - i];
-		d[8 + i] = c[i];
-		d[17 + i] = c[7 - i];
-	}
-	d[16] = c[8];
-	int ii = y + 7;
-	int jj = x + 7;
-	int di = 0,dj = 0;
-	if (w == "R") {
-		di = 0;
-		dj = 1;
-	}
-	else if (w == "L") {
-		di = 0;
-		dj = -1;
-	}
-	else if (w == "U") {
-		di = -1;
-		dj = 0;
-	}
-	else if (w == "D") {
-		di = 1;
-		dj = 0;
-	}
-	else if (w == "RU") {
-		di = -1;
-		dj = 1;
-	}
-	else if (w == "RD") {
-		di = 1;
-		dj = 1;
-	}
-	else if (w == "LU") {
-		di = -1;
-		dj = -1;
-	}
-	else if (w == "LD") {
-		di = 1;
-		dj = -1;
-	}
-	rep(i, 0, 4) {
-		cout << d[ii][jj];
-		ii += di;
-		jj += dj;
-	}
+	cout << v<<"\n";
 }
 
 

@@ -316,44 +316,6 @@ public:
 };
 
 
-
-
-//baruun tiishee yavah bol return 1
-int bs_compare(ll target, ll b) {
-	if (target > b) return 1;
-	else if (target < b) return -1;
-	else return 0;//equal
-}
-
-
-ll my_binary_search(vi& v, int size, ll target) {
-	if (size == 0) {
-		size = v.size();
-	}
-	ll ans = -1;
-	int l = 0;
-	int r = size - 1;
-	int mid;
-	while (l <= r) {
-		mid = l + (r - l) / 2;
-		int val = bs_compare(target, v[mid]);
-		if (val == 0) {
-			ans = mid;
-			r = mid - 1;
-			break;
-		}
-		else if (val > 0) {
-			//ans = mid;
-			l = mid + 1;
-		}
-		else {
-			//ans = mid;
-			r = mid - 1;
-		}
-	}
-	return ans;
-}
-
 vll fact, invfact, inv;
 
 void initFacts(ll n,ll m) {
@@ -605,26 +567,66 @@ void prepare(int max_val) {
 	}
 }
 
+
 void solve(int test) {
-	ll rd(n, k);
-	initFacts(n, MOD);
-	vll rdv(a, n);
-	sort(all(a));
-	ll val = 1;
-	ll ans = 0;
-	rep(i, 0, n) {
-		if (i >= (k-1)) {
-			ll v = nCk(i, k-1);
-			v = (v * a[i]) % MOD;
-			ans = (ans + v) % MOD;
-		}
-		if (i <= (n - k)) {
-			ll v = nCk(n-(i+1), k - 1);
-			v = (v * a[i]) % MOD;
-			ans = (ans - v) % MOD;
-		}
+	int rd(x, y);
+	string rd(w);
+	VS rdv(c,9);
+	VS rc(9);
+	rep(i, 0, 9) {
+		rc[i] = c[i];
+		reverse(rc[i].begin(), rc[i].end());
 	}
-	cout << ans;
+	rep(i, 0, 9) {
+		c[i] = rc[i].substr(0,8) + c[i] + rc[i].substr(1, 8);
+	}
+	VS d(25);
+	rep(i, 0, 8) {
+		d[i] = c[8 - i];
+		d[8 + i] = c[i];
+		d[17 + i] = c[7 - i];
+	}
+	d[16] = c[8];
+	int ii = y + 7;
+	int jj = x + 7;
+	int di = 0,dj = 0;
+	if (w == "R") {
+		di = 0;
+		dj = 1;
+	}
+	else if (w == "L") {
+		di = 0;
+		dj = -1;
+	}
+	else if (w == "U") {
+		di = -1;
+		dj = 0;
+	}
+	else if (w == "D") {
+		di = 1;
+		dj = 0;
+	}
+	else if (w == "RU") {
+		di = -1;
+		dj = 1;
+	}
+	else if (w == "RD") {
+		di = 1;
+		dj = 1;
+	}
+	else if (w == "LU") {
+		di = -1;
+		dj = -1;
+	}
+	else if (w == "LD") {
+		di = 1;
+		dj = -1;
+	}
+	rep(i, 0, 4) {
+		cout << d[ii][jj];
+		ii += di;
+		jj += dj;
+	}
 }
 
 

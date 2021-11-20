@@ -32,6 +32,7 @@ using namespace std;
 #define MOD 1000000007
 #define MOD2 998244353
 #define rep(i,st,en) for(int i=st;i<en;++i)
+#define vld vector<ld>
 #define vll	vector<ll>
 #define vvll	vector<vll>
 #define vi vector<int>
@@ -355,11 +356,10 @@ ll my_binary_search(vi& v, int size, ll target) {
 }
 
 vll fact, invfact, inv;
-
-void initFacts(ll n,ll m) {
+void initFacts(ll n, ll m) {
 	fact.resize(n + 1);
 	invfact.resize(n + 1);
-	inv.resize(n+1);
+	inv.resize(n + 1);
 	fact[0] = 1;
 	invfact[0] = 1;
 	inv[0] = 1;
@@ -586,7 +586,7 @@ ll lis(vll& v, ll maxVal) {
 
 
 vector<ll> primes;
-void prepare(int max_val) {
+void findPrimes(int max_val) {
 	primes.push_back(2);
 	primes.push_back(3);
 	for (ll i = 5; i <= max_val; i += 2) {
@@ -605,25 +605,52 @@ void prepare(int max_val) {
 	}
 }
 
-void solve(int test) {
-	ll rd(n, k);
-	initFacts(n, MOD);
-	vll rdv(a, n);
-	sort(all(a));
-	ll val = 1;
-	ll ans = 0;
-	rep(i, 0, n) {
-		if (i >= (k-1)) {
-			ll v = nCk(i, k-1);
-			v = (v * a[i]) % MOD;
-			ans = (ans + v) % MOD;
+ll phi(ll n) {
+	ll ans = n;
+	ll i = 2;
+	while (i * i <= n) {
+		if (n % i == 0) {
+			ans -= ans / i;
+			while (n % i == 0)
+				n /= i;
 		}
-		if (i <= (n - k)) {
-			ll v = nCk(n-(i+1), k - 1);
-			v = (v * a[i]) % MOD;
-			ans = (ans - v) % MOD;
-		}
+		i++;
 	}
+	if (n != 1)
+		ans -= ans / n;
+	return ans;
+}
+
+ll bigPow(ll a, ll d, ll m) {
+	if (a % m == 0) return 0;
+	if (d == 0) return 1LL;
+	ll r = bigPow(a, d / 2, m);
+	r = (r * r) % m;
+	if ((d % 2) == 1)
+		r = (r * a) % m;
+	return r;
+}
+
+ll nCk2(ll n, ll k) {
+	ll r = 1;
+	rep(i, 0, k) {
+		r *= (n - i);
+		r /= (i + 1);
+	}
+	return r;
+}
+
+void solve(int test) {
+	ll rd(n, k, m);
+	if ((m%MOD2) == 1) {
+		cout << 1 << "\n";
+		return;
+	}
+	ll im = MOD2-1;
+	k %= im;
+	ll d = bigPow(k, n, im);
+	m %= MOD2;
+	ll ans = bigPow(m, d,MOD2);
 	cout << ans;
 }
 

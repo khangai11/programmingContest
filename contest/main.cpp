@@ -317,44 +317,6 @@ public:
 };
 
 
-
-
-//baruun tiishee yavah bol return 1
-int bs_compare(ll target, ll b) {
-	if (target > b) return 1;
-	else if (target < b) return -1;
-	else return 0;//equal
-}
-
-
-ll my_binary_search(vi& v, int size, ll target) {
-	if (size == 0) {
-		size = v.size();
-	}
-	ll ans = -1;
-	int l = 0;
-	int r = size - 1;
-	int mid;
-	while (l <= r) {
-		mid = l + (r - l) / 2;
-		int val = bs_compare(target, v[mid]);
-		if (val == 0) {
-			ans = mid;
-			r = mid - 1;
-			break;
-		}
-		else if (val > 0) {
-			//ans = mid;
-			l = mid + 1;
-		}
-		else {
-			//ans = mid;
-			r = mid - 1;
-		}
-	}
-	return ans;
-}
-
 vll fact, invfact, inv;
 void initFacts(ll n, ll m) {
 	fact.resize(n + 1);
@@ -631,27 +593,38 @@ ll bigPow(ll a, ll d, ll m) {
 	return r;
 }
 
-ll nCk2(ll n, ll k) {
-	ll r = 1;
-	rep(i, 0, k) {
-		r *= (n - i);
-		r /= (i + 1);
-	}
-	return r;
-}
 
 void solve(int test) {
-	ll rd(n, k, m);
-	if ((m%MOD2) == 1) {
-		cout << 1 << "\n";
-		return;
+	ll rd(n);
+	vll rdv(a, n);
+	vll ans(n);
+	rep(i, 0, n) {
+		ll aoki = -10000;
+		ll taka = -10000;
+		rep(j, 0, n) {
+			if (i == j) continue;
+			ll ao = 0;
+			ll ta = 0;
+			rep(k, 0, max(i, j) - min(i, j) + 1) {
+				if (k % 2 == 0) {
+					ta += a[min(i,j)+k];
+				}
+				else {
+					ao += a[min(i, j) + k];
+				}
+			}
+			if (ao > aoki) {
+				aoki = ao;
+				taka = ta;
+			}
+		}
+		ans[i] = taka;
 	}
-	ll im = MOD2-1;
-	k %= im;
-	ll d = bigPow(k, n, im);
-	m %= MOD2;
-	ll ans = bigPow(m, d,MOD2);
-	cout << ans;
+	ll v = -10000;
+	rep(i, 0, n) {
+		v = max(v, ans[i]);
+	}
+	cout << v<<"\n";
 }
 
 

@@ -113,11 +113,11 @@ public:
 		return w[ra];
 	}
 
-	void join(int a, int b) {
+	bool join(int a, int b) {
 		int ra = root(a);
 		int rb = root(b);
 		if (ra == rb)
-			return;
+			return false;
 		if (union_size[ra] > union_size[rb]) {
 			parent[rb] = ra;
 			union_size[ra] += union_size[rb];
@@ -129,6 +129,7 @@ public:
 			w[rb] += w[ra];
 		}
 		len--;
+		return true;
 	}
 
 	int size(int a) {
@@ -334,12 +335,15 @@ void initFacts(ll n, ll m) {
 		if (inv[i] < 0) inv[i] += m;
 	}
 	rep(i, 1, n + 1) {
-		invfact[i] = invfact[i - 1] * inv[i] % m;
+		invfact[i] = (invfact[i - 1] * inv[i]) % m;
 	}
 }
 
-ll nCk(ll n, ll k) {
-	ll v = (((fact[n] * invfact[k]) % MOD) * invfact[n - k]) % MOD;
+ll nCk(ll n, ll k, ll m) {
+	if (k > n) return 0;
+	if (k < 0) return 0;
+	if (k == 0) return 1LL;
+	ll v = (((fact[n] * invfact[k]) % m) * invfact[n - k]) % m;
 	return v;
 }
 
@@ -376,41 +380,44 @@ ll modInverse(ll a, ll m)
 
 class LazyPart {
 public:
-
+	ll val = 0;
 
 	LazyPart() {
 	}
 
 	LazyPart(ll aa) {
+		val = aa;
 	}
 
 	LazyPart& operator=(const LazyPart& other) {
+		val = other.val;
 		return *this;
 	}
 
 	void reset() {
+		val = 0;
 	}
 };
 
 class LazyReal {
 public:
-	unordered_set<int> s;
+	ll val = 0;
 
 	LazyReal() {
-		s.clear();
+		val = 0;
 	}
 
 	LazyReal(int v) {
-		s.insert(v);
+		val = v;
 	}
 
 	LazyReal& operator=(const LazyReal& other) {
-		s = other.s;
+		val = other.val;
 		return *this;
 	}
 
 	void reset() {
-		s.clear();
+		val = 0;
 	}
 };
 
@@ -451,20 +458,19 @@ public:
 	//need to implement
 	LazyReal func(LazyReal& a, LazyReal& b) {
 		LazyReal r = dummyReal;
-		r.s = a.s;
-		r.s.insert(b.s.begin(), b.s.end());
+		r.val = a.val + b.val;
 		return r;
 	}
 
 	//a-g b-eer shinechlene.
 	//need to implement
 	void applyLazy(LazyReal& a, LazyPart& b, int len) {
-		//a.val += b.a;
+		a.val += b.val;
 	}
 	//a-g b-eer shinechlene.
 	//need to implement
 	void passDownLazy(LazyPart& a, LazyPart& b) {
-		//a.a += b.a;
+		a.val += b.val;
 	}
 
 
@@ -593,46 +599,159 @@ ll bigPow(ll a, ll d, ll m) {
 	return r;
 }
 
-
-void solve(int test) {
-	ll rd(n);
-	vll rdv(a, n);
-	vll ans(n);
-	rep(i, 0, n) {
-		ll aoki = -10000;
-		ll taka = -10000;
-		rep(j, 0, n) {
-			if (i == j) continue;
-			ll ao = 0;
-			ll ta = 0;
-			rep(k, 0, max(i, j) - min(i, j) + 1) {
-				if (k % 2 == 0) {
-					ta += a[min(i,j)+k];
-				}
-				else {
-					ao += a[min(i, j) + k];
-				}
-			}
-			if (ao > aoki) {
-				aoki = ao;
-				taka = ta;
-			}
-		}
-		ans[i] = taka;
+ll nCk2(ll n, ll k, ll m) {
+	if (n == 0) return 1;
+	if (k == 0) return 1;
+	if (n < k) return 1;
+	ll v = 1;
+	ll p = 1;
+	rep(i, 0, k) {
+		v = (v * (n - i)) % m;
+		p = (p * (i + 1)) % m;
 	}
-	ll v = -10000;
-	rep(i, 0, n) {
-		v = max(v, ans[i]);
-	}
-	cout << v<<"\n";
+	p = modInverse(p, m);
+	v = (v * p) % m;
+	return v;
 }
 
+class Fraction {
+public:
+	ll num = 0;
+	ll den=1;
+		
+	Fraction(ll numer=0, ll denom=1) {
+		ll g = gcd(numer, denom);
+		num = numer/g;
+		den = denom/g;
+	}
+
+	void simplify() {
+		ll g = gcd(num, den);
+		num /= g;
+		den /= g;
+	}
+
+	Fraction operator+(const Fraction &a) {
+		Fraction r;
+		ll g = gcd(den, a.den);
+		ll lc = (den / g) * a.den;
+		r.den = lc;
+		ll ma = lc / a.den;
+		ll mm = lc / den;
+		r.num = (ma*a.num) + (num*mm);
+		r.simplify();
+		return r;
+	}
+
+	Fraction operator-(const Fraction& a) {
+		Fraction r;
+		ll g = gcd(den, a.den);
+		ll lc = (den / g) * a.den;
+		r.den = lc;
+		ll ma = lc / a.den;
+		ll mm = lc / den;
+		r.num = (num * mm) - (ma * a.num);
+		r.simplify();
+		return r;
+	}
+
+	Fraction operator+(ll a) {
+		Fraction r;
+		r.den = den;
+		r.num = (den * a + num);
+		r.simplify();
+		return r;
+	}
+
+	Fraction operator-(ll a) {
+		Fraction r;
+		r.den = den;
+		r.num = (num - den * a);
+		r.simplify();
+		return r;
+	}
+
+	Fraction operator*(const Fraction &a) {
+		Fraction r;
+		r.den = den * a.den;
+		r.num = num * a.num;
+		r.simplify();
+		return r;
+	}
+
+	Fraction operator*(ll a) {
+		Fraction r;
+		r.den = den;
+		r.num = a * num;
+		r.simplify();
+		return r;
+	}
+
+	Fraction operator/(const Fraction& a) {
+		Fraction r;
+		r.den = den * a.num;
+		r.num = num * a.den;
+		r.simplify();
+		return r;
+	}
+
+	Fraction operator/(ll a) {
+		Fraction r;
+		r.den = den*a;
+		r.num = num;
+		r.simplify();
+		return r;
+	}
+
+	void print() {
+		cout << num << "/" << den << "\n";
+	}
+};
+
+
+void solve(int test) {
+	ll rd(n, m, x1, y1, x2, y2,p);
+	set<ll> s;
+	if (x1 <= x2) {
+		s.insert(x2 - x1);
+		s.insert((n - x1 + n - x2)%(2*n-2));
+	}
+	else {
+		s.insert((n - x1 + n - x2)%(2*n-2));
+		s.insert((2 * n - 2 - (x1 - x2))%(2*n-2));
+	}
+	if (y1 <= y2) {
+		s.insert(y2 - y1);
+		s.insert((m - y1 + m - y2)%(2*m-2));
+	}
+	else {
+		s.insert((m - y1 + m - y2)%(2*m-2));
+		s.insert((2 * m - 2 - (y1 - y2))%(2*m-2));
+	}
+	Fraction p1(p,100);
+	Fraction pn(100 - p, 100);
+	Fraction pos(1, 1);
+	Fraction val(0, 1);
+	for (auto v : s) {
+		val = val + (pos * p1 * v);
+		pos = pos * pn;
+	}
+	Fraction k(1, 1);
+	Fraction b = pos*(2*n-2);
+	b = b + val;
+	k = k - pos;
+	Fraction a = b / k;
+	ll x = a.num;
+	ll y = a.den;
+	x = (x * modInverse(y, MOD2)) % MOD2;
+	cout << x << "\n";
+}
 
 int main() {
 	//freopen("input.txt", "r", stdin);
 	ios::sync_with_stdio(0); cin.tie(0);
 	int test = 1;
-	//cin >> test;
+	cin >> test;
 	for (int t = 1; t <= test; t++)
 		solve(0);
 	return 0;

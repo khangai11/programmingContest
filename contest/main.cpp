@@ -28,10 +28,10 @@ using namespace std;
 #define ll long long
 #define ld long double
 #define INF (1LL<<30)
-#define INFLL (1LL<<60)
+#define INFLL (1LL<<62)
 #define MOD 1000000007
 #define MOD2 998244353
-#define rep(i,st,en) for(int i=st;i<en;++i)
+#define rep(i,st,en) for(ll i=st;i<en;++i)
 #define vld vector<ld>
 #define vll	vector<ll>
 #define vvll	vector<vll>
@@ -465,14 +465,15 @@ public:
 	//a-g b-eer shinechlene.
 	//need to implement
 	void applyLazy(LazyReal& a, LazyPart& b, int len) {
-		a.val += b.val;
+		if (b.val) {
+			a.val = len - a.val;
+		}
 	}
 	//a-g b-eer shinechlene.
 	//need to implement
 	void passDownLazy(LazyPart& a, LazyPart& b) {
-		a.val += b.val;
+		a.val = (a.val + b.val)%2;
 	}
-
 
 	void passDown(int ind, ll len) {
 		if (!islazy[ind]) return;
@@ -543,9 +544,9 @@ ll lis(vll& v, ll maxVal) {
 	vll dp(n, maxVal);
 	for (int i = 0; i < n; i++) {
 		//not acceptable same number
-		//int x = (upper_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
+		int x = (upper_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
 		//accept same number
-		int x = (lower_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
+		//int x = (lower_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
 		dp[x] = v[i];
 	}
 	return (lower_bound(dp.begin(), dp.end(), maxVal) - dp.begin());
@@ -571,6 +572,24 @@ void findPrimes(int max_val) {
 		if (isprime)
 			primes.push_back(i);
 	}
+}
+
+bool isPrime(ll n) {
+	if (n == 1) return false;
+	if (n <= primes.back()) {
+		auto itr = lower_bound(all(primes), n);
+		if ((*itr) == n) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	for (auto v : primes) {
+		if (n % v == 0) return false;
+		if (v * v > n) break;
+	}
+	return true;
 }
 
 ll phi(ll n) {
@@ -614,137 +633,61 @@ ll nCk2(ll n, ll k, ll m) {
 	return v;
 }
 
-class Fraction {
-public:
-	ll num = 0;
-	ll den=1;
-		
-	Fraction(ll numer=0, ll denom=1) {
-		ll g = gcd(numer, denom);
-		num = numer/g;
-		den = denom/g;
+void findDiv(vpll& p, vll v, vll& divs) {
+	ll val = 1;
+	ll n = p.size();
+	rep(i, 0, n) {
+		rep(j, 0, v[i]) {
+			val *= p[i].first;
+		}
 	}
+	divs.push_back(val);
+	v[0] ++;
+	rep(i, 0, n - 1) {
+		if (v[i] > p[i].second) {
+			v[i + 1]++;
+			v[i] = 0;
+		}
+	}
+	if (v[n - 1] > p[n - 1].second)
+		return;
+	findDiv(p, v, divs);
+}
 
-	void simplify() {
-		ll g = gcd(num, den);
-		num /= g;
-		den /= g;
+void findDivisors(ll n, vpll& p) {
+	//vpll p;
+	ll ps = primes.size();
+	ll i = 0;
+	if (n == 1) {
+		p.emplace_back(1,1);
+		return;
 	}
-
-	Fraction operator+(const Fraction &a) {
-		Fraction r;
-		ll g = gcd(den, a.den);
-		ll lc = (den / g) * a.den;
-		r.den = lc;
-		ll ma = lc / a.den;
-		ll mm = lc / den;
-		r.num = (ma*a.num) + (num*mm);
-		r.simplify();
-		return r;
+	while (n > 1 && i < ps) {
+		if (n % primes[i] == 0) {
+			ll d = 0;
+			while (n % primes[i] == 0) {
+				d++;
+				n /= primes[i];
+			}
+			p.emplace_back(primes[i], d);
+		}
+		i++;
 	}
-
-	Fraction operator-(const Fraction& a) {
-		Fraction r;
-		ll g = gcd(den, a.den);
-		ll lc = (den / g) * a.den;
-		r.den = lc;
-		ll ma = lc / a.den;
-		ll mm = lc / den;
-		r.num = (num * mm) - (ma * a.num);
-		r.simplify();
-		return r;
+	if (n > 1) {
+		p.emplace_back(n, 1);
 	}
-
-	Fraction operator+(ll a) {
-		Fraction r;
-		r.den = den;
-		r.num = (den * a + num);
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator-(ll a) {
-		Fraction r;
-		r.den = den;
-		r.num = (num - den * a);
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator*(const Fraction &a) {
-		Fraction r;
-		r.den = den * a.den;
-		r.num = num * a.num;
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator*(ll a) {
-		Fraction r;
-		r.den = den;
-		r.num = a * num;
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator/(const Fraction& a) {
-		Fraction r;
-		r.den = den * a.num;
-		r.num = num * a.den;
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator/(ll a) {
-		Fraction r;
-		r.den = den*a;
-		r.num = num;
-		r.simplify();
-		return r;
-	}
-
-	void print() {
-		cout << num << "/" << den << "\n";
-	}
-};
+	//vll v(p.size(), 0);
+	//findDiv(p, v, divs);
+}
 
 
 void solve(int test) {
-	ll rd(n, m, x1, y1, x2, y2,p);
-	set<ll> s;
-	if (x1 <= x2) {
-		s.insert(x2 - x1);
-		s.insert((n - x1 + n - x2)%(2*n-2));
+	findPrimes(100100);
+	rep(i, 0, 100) {
+		ll rd(a);
+		cout << isPrime(a)<<"\n";
 	}
-	else {
-		s.insert((n - x1 + n - x2)%(2*n-2));
-		s.insert((2 * n - 2 - (x1 - x2))%(2*n-2));
-	}
-	if (y1 <= y2) {
-		s.insert(y2 - y1);
-		s.insert((m - y1 + m - y2)%(2*m-2));
-	}
-	else {
-		s.insert((m - y1 + m - y2)%(2*m-2));
-		s.insert((2 * m - 2 - (y1 - y2))%(2*m-2));
-	}
-	Fraction p1(p,100);
-	Fraction pn(100 - p, 100);
-	Fraction pos(1, 1);
-	Fraction val(0, 1);
-	for (auto v : s) {
-		val = val + (pos * p1 * v);
-		pos = pos * pn;
-	}
-	Fraction k(1, 1);
-	Fraction b = pos*(2*n-2);
-	b = b + val;
-	k = k - pos;
-	Fraction a = b / k;
-	ll x = a.num;
-	ll y = a.den;
-	x = (x * modInverse(y, MOD2)) % MOD2;
-	cout << x << "\n";
+
 }
 
 int main() {

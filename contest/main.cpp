@@ -15,6 +15,9 @@
 #include<numeric>
 #include<bitset>
 #include<iomanip>
+#include<cstdlib>
+#include<time.h>
+#include <functional>
 
 
 using namespace std;
@@ -31,7 +34,7 @@ using namespace std;
 #define INFLL (1LL<<60)
 #define MOD 1000000007
 #define MOD2 998244353
-#define rep(i,st,en) for(int i=st;i<en;++i)
+#define rep(i,st,en) for(ll i=(st);i<(en);++i)
 #define vld vector<ld>
 #define vll	vector<ll>
 #define vvll	vector<vll>
@@ -86,10 +89,12 @@ public:
 	vector<int> union_size;
 	vector<ll> w;
 	int len;
+	int nn;
 	ll value = 0;
 
 	UnionFindTree(int n) {
 		len = n;
+		nn = n;
 		parent.resize(n + 1, 0);
 		w.resize(n + 1, 0);
 		union_size.resize(n + 1, 1);
@@ -114,11 +119,13 @@ public:
 	}
 
 	bool join(int a, int b) {
+		if (a<0 || a>nn) return false;
+		if (b<0 || b>nn) return false;
 		int ra = root(a);
 		int rb = root(b);
 		if (ra == rb)
 			return false;
-		if (union_size[ra] > union_size[rb]) {
+		if (ra < rb) {
 			parent[rb] = ra;
 			union_size[ra] += union_size[rb];
 			w[ra] += w[rb];
@@ -401,26 +408,29 @@ public:
 
 class LazyReal {
 public:
-	ll val = 0;
+	ll val;
+	ll ind;
 
 	LazyReal() {
 		val = 0;
+		ind = 0;
 	}
 
-	LazyReal(int v) {
-		val = v;
+	LazyReal(ll value, ll indx) {
+		val = value;
+		ind = indx;
 	}
 
 	LazyReal& operator=(const LazyReal& other) {
 		val = other.val;
+		ind = other.ind;
 		return *this;
 	}
 
 	void reset() {
-		val = 0;
+		val = ind = 0;
 	}
 };
-
 
 class lazySegmentTree {
 public:
@@ -434,10 +444,14 @@ public:
 	LazyReal defval = dummyReal;
 
 	lazySegmentTree() {
+
 	}
 
 	lazySegmentTree(int size) {
 		n = 1;
+		dummyReal.val = INFLL;
+		dummyReal.ind = INFLL;
+		dummyLazy.val = 0;
 		while (n < size) n *= 2;
 		v.resize(2 * n, dummyReal);
 		z.resize(2 * n, dummyLazy);
@@ -458,7 +472,14 @@ public:
 	//need to implement
 	LazyReal func(LazyReal& a, LazyReal& b) {
 		LazyReal r = dummyReal;
-		r.val = a.val + b.val;
+		if (a.val <= b.val) {
+			r.val = a.val;
+			r.ind = a.ind;
+		}
+		else {
+			r.val = b.val;
+			r.ind = b.ind;
+		}
 		return r;
 	}
 
@@ -472,7 +493,6 @@ public:
 	void passDownLazy(LazyPart& a, LazyPart& b) {
 		a.val += b.val;
 	}
-
 
 	void passDown(int ind, ll len) {
 		if (!islazy[ind]) return;
@@ -543,15 +563,13 @@ ll lis(vll& v, ll maxVal) {
 	vll dp(n, maxVal);
 	for (int i = 0; i < n; i++) {
 		//not acceptable same number
-		//int x = (upper_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
+		int x = (upper_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
 		//accept same number
-		int x = (lower_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
+		//int x = (lower_bound(dp.begin(), dp.end(), v[i]) - dp.begin());
 		dp[x] = v[i];
 	}
 	return (lower_bound(dp.begin(), dp.end(), maxVal) - dp.begin());
 }
-
-
 
 vector<ll> primes;
 void findPrimes(int max_val) {
@@ -573,6 +591,24 @@ void findPrimes(int max_val) {
 	}
 }
 
+bool isPrime(ll n) {
+	if (n == 1) return false;
+	if (n <= primes.back()) {
+		auto itr = lower_bound(all(primes), n);
+		if ((*itr) == n) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	for (auto v : primes) {
+		if (n % v == 0) return false;
+		if (v * v > n) break;
+	}
+	return true;
+}
+
 ll phi(ll n) {
 	ll ans = n;
 	ll i = 2;
@@ -591,6 +627,7 @@ ll phi(ll n) {
 
 ll bigPow(ll a, ll d, ll m) {
 	if (a % m == 0) return 0;
+	a %= m;
 	if (d == 0) return 1LL;
 	ll r = bigPow(a, d / 2, m);
 	r = (r * r) % m;
@@ -614,145 +651,173 @@ ll nCk2(ll n, ll k, ll m) {
 	return v;
 }
 
-class Fraction {
-public:
-	ll num = 0;
-	ll den=1;
-		
-	Fraction(ll numer=0, ll denom=1) {
-		ll g = gcd(numer, denom);
-		num = numer/g;
-		den = denom/g;
+void findDiv(vpll& p, vll v, vll& divs) {
+	ll val = 1;
+	ll n = p.size();
+	rep(i, 0, n) {
+		rep(j, 0, v[i]) {
+			val *= p[i].first;
+		}
 	}
-
-	void simplify() {
-		ll g = gcd(num, den);
-		num /= g;
-		den /= g;
+	divs.push_back(val);
+	v[0] ++;
+	rep(i, 0, n - 1) {
+		if (v[i] > p[i].second) {
+			v[i + 1]++;
+			v[i] = 0;
+		}
 	}
-
-	Fraction operator+(const Fraction &a) {
-		Fraction r;
-		ll g = gcd(den, a.den);
-		ll lc = (den / g) * a.den;
-		r.den = lc;
-		ll ma = lc / a.den;
-		ll mm = lc / den;
-		r.num = (ma*a.num) + (num*mm);
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator-(const Fraction& a) {
-		Fraction r;
-		ll g = gcd(den, a.den);
-		ll lc = (den / g) * a.den;
-		r.den = lc;
-		ll ma = lc / a.den;
-		ll mm = lc / den;
-		r.num = (num * mm) - (ma * a.num);
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator+(ll a) {
-		Fraction r;
-		r.den = den;
-		r.num = (den * a + num);
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator-(ll a) {
-		Fraction r;
-		r.den = den;
-		r.num = (num - den * a);
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator*(const Fraction &a) {
-		Fraction r;
-		r.den = den * a.den;
-		r.num = num * a.num;
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator*(ll a) {
-		Fraction r;
-		r.den = den;
-		r.num = a * num;
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator/(const Fraction& a) {
-		Fraction r;
-		r.den = den * a.num;
-		r.num = num * a.den;
-		r.simplify();
-		return r;
-	}
-
-	Fraction operator/(ll a) {
-		Fraction r;
-		r.den = den*a;
-		r.num = num;
-		r.simplify();
-		return r;
-	}
-
-	void print() {
-		cout << num << "/" << den << "\n";
-	}
-};
-
-
-void solve(int test) {
-	ll rd(n, m, x1, y1, x2, y2,p);
-	set<ll> s;
-	if (x1 <= x2) {
-		s.insert(x2 - x1);
-		s.insert((n - x1 + n - x2)%(2*n-2));
-	}
-	else {
-		s.insert((n - x1 + n - x2)%(2*n-2));
-		s.insert((2 * n - 2 - (x1 - x2))%(2*n-2));
-	}
-	if (y1 <= y2) {
-		s.insert(y2 - y1);
-		s.insert((m - y1 + m - y2)%(2*m-2));
-	}
-	else {
-		s.insert((m - y1 + m - y2)%(2*m-2));
-		s.insert((2 * m - 2 - (y1 - y2))%(2*m-2));
-	}
-	Fraction p1(p,100);
-	Fraction pn(100 - p, 100);
-	Fraction pos(1, 1);
-	Fraction val(0, 1);
-	for (auto v : s) {
-		val = val + (pos * p1 * v);
-		pos = pos * pn;
-	}
-	Fraction k(1, 1);
-	Fraction b = pos*(2*n-2);
-	b = b + val;
-	k = k - pos;
-	Fraction a = b / k;
-	ll x = a.num;
-	ll y = a.den;
-	x = (x * modInverse(y, MOD2)) % MOD2;
-	cout << x << "\n";
+	if (v[n - 1] > p[n - 1].second)
+		return;
+	findDiv(p, v, divs);
 }
 
+void findPrimeDividers(ll n, vpll& p) {
+	//vpll p;
+	ll ps = primes.size();
+	ll i = 0;
+	if (n == 1) {
+		p.emplace_back(1, 1);
+		return;
+	}
+	while (n > 1 && i < ps) {
+		if (n % primes[i] == 0) {
+			ll d = 0;
+			while (n % primes[i] == 0) {
+				d++;
+				n /= primes[i];
+			}
+			p.emplace_back(primes[i], d);
+		}
+		i++;
+	}
+	if (n > 1) {
+		p.emplace_back(n, 1);
+	}
+}
+
+void findDivisors(ll n, vll& divs) {
+	vpll p;
+	findPrimeDividers(n, p);
+	vll v(p.size(), 0);
+	findDiv(p, v, divs);
+}
+
+#define MOS_BLOCK	512
+
+bool cmp(pll p, pll q) {
+	if (p.first / MOS_BLOCK != q.first / MOS_BLOCK)
+		return p < q;
+	return p.second < q.second;
+}
+
+void func_add(vll& mp, vll& a, ll ind, ll& sum) {
+	ll tmp = mp[a[ind]];
+	sum += (2 * tmp + 1) * a[ind];
+	mp[a[ind]]++;
+}
+void func_minus(vll& mp, vll& a, ll ind, ll& sum) {
+	ll tmp = mp[a[ind]];
+	tmp--;
+	sum -= (2 * tmp + 1) * a[ind];
+	mp[a[ind]]--;
+}
+
+void solve_mos(int test) {
+	ll rd(n, t);
+	vll rdv(a, n);
+	vpll rdv(q, t);
+	map<pll, vll> mpq;
+	rep(i, 0, t) {
+		q[i].first--;
+		q[i].second--;
+		mpq[q[i]].push_back(i);
+	}
+	vll mp(1001001, 0);
+	sort(all(q), cmp);
+	vll ans(t);
+	ll l = 0, r = 0;
+	mp[a[l]]++;
+	ll sum = a[l];
+	rep(i, 0, t) {
+		while (l > q[i].first) {
+			l--;
+			func_add(mp, a, l, sum);
+		}
+		while (r < q[i].second) {
+			r++;
+			func_add(mp, a, r, sum);
+		}
+		while (r > q[i].second) {
+			func_minus(mp, a, r, sum);
+			r--;
+		}
+		while (l < q[i].first) {
+			func_minus(mp, a, l, sum);
+			l++;
+		}
+		for (auto inde : mpq[q[i]])
+			ans[inde] = sum;
+	}
+	rep(i, 0, t) {
+		cout << ans[i] << "\n";
+	}
+}
+
+void solve(int test) {
+	ll rd(n);
+	vll rdv(b, n / 2);
+	vll bb = b;
+	sort(all(bb));
+	
+	unordered_map<ll, ll> mp;
+	rep(i, 0, n / 2) {
+		mp[b[i]] = i;
+	}
+
+	vll a;
+	ll c = 0;
+	ll d = 0;
+	vll f(n, 0);//ooroos ni baga too hed belen baih yostoi
+	rep(i, 1, n + 1) {
+		if (mp.find(i) == mp.end()) {
+			c++;
+			a.push_back(i);
+		}
+		else {
+			d++;
+			f[i] = (i - 2 * d);
+			if (f[i] == 0) {
+
+			}
+		}
+	}
+	
+	
+	vll p(n + 1, 0);
+	
+	rep(i, 1, n + 1) {
+		
+		else {
+			p[i] = a.size();
+		}
+	}
+
+	
+	rep(i, 1, (n + 1)) {
+		
+	}
+}
+
+
 int main() {
+	//initFacts(120, MOD2);
+	//findPrimes(100000);
 	//freopen("input.txt", "r", stdin);
 	ios::sync_with_stdio(0); cin.tie(0);
 	int test = 1;
 	cin >> test;
 	for (int t = 1; t <= test; t++)
-		solve(0);
+		solve(t);
 	return 0;
 }

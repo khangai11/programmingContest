@@ -1,6 +1,6 @@
 #queue
 
-![Alt Text](https://media4.giphy.com/media/l2JdWz78SwGlUV7OM/giphy.gif?cid=ecf05e476m4l07alexoya37pei10dqwthh3ay5ez3v69l7p2&rid=giphy.gif&ct=g)
+![simpsons queue](https://media4.giphy.com/media/l2JdWz78SwGlUV7OM/giphy.gif?cid=ecf05e476m4l07alexoya37pei10dqwthh3ay5ez3v69l7p2&rid=giphy.gif&ct=g)
 
 Хүмүүс оочирлож зогсож байгааг нь төсөөлөх юм бол queue-г ойлгоход илүү хялбар болов уу.
 жагсаалын эхэнд байгаа хүн нь түрүүлж үйлчлүүлээд, сүүлд ирсэн хүн нь цувааны хамгийн ард ирж зогсдогтой адил түрүүлж ирсэн нь түрүүлж үйлчлүүдэг зарчим.

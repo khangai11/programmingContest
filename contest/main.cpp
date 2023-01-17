@@ -18,6 +18,8 @@
 #include<cstdlib>
 #include<time.h>
 #include <functional>
+#include <chrono>
+#include <thread>
 
 
 using namespace std;
@@ -28,6 +30,12 @@ using namespace std;
 #define prnt(a) (void)0
 #endif // _DEBUG
 
+#ifdef _MSC_VER
+#  include <intrin.h>
+#  define __builtin_popcount __popcnt
+#endif
+
+#define ull unsigned long long
 #define ll long long
 #define ld long double
 #define INF (1LL<<30)
@@ -159,6 +167,15 @@ public:
 		v.resize(2 * n, defval);
 		func = f;
 	}
+
+	segmentTree(int s, T(*f)(T, T), T defaultValue) {
+		n = 1;
+		while (n < s) n *= 2;
+		defval = defaultValue;
+		v.resize(2 * n, defval);
+		func = f;
+	}
+
 	/// <summary>
 	/// use this before calculateTree()
 	/// index starts 0
@@ -573,21 +590,16 @@ ll lis(vll& v, ll maxVal) {
 
 vector<ll> primes;
 void findPrimes(int max_val) {
-	primes.push_back(2);
-	primes.push_back(3);
-	for (ll i = 5; i <= max_val; i += 2) {
-		int j = 0;
-		ll max_val = sqrt(i);
-		bool isprime = true;
-		while (primes[j] <= max_val) {
-			if (i % primes[j] == 0) {
-				isprime = false;
-				break;
-			}
-			j++;
-		}
-		if (isprime)
+	vb p(max_val + 1, false);
+	rep(i, 2, max_val + 1) {
+		if (!p[i]) {
 			primes.push_back(i);
+			ll v = i * 2;
+			while (v <= max_val) {
+				p[v] = true;
+				v += i;
+			}
+		}
 	}
 }
 
@@ -722,101 +734,60 @@ void func_minus(vll& mp, vll& a, ll ind, ll& sum) {
 	sum -= (2 * tmp + 1) * a[ind];
 	mp[a[ind]]--;
 }
+//
+//void solve_mos(int test) {
+//	ll rd(n, t);
+//	vll rdv(a, n);
+//	vpll rdv(q, t);
+//	map<pll, vll> mpq;
+//	rep(i, 0, t) {
+//		q[i].first--;
+//		q[i].second--;
+//		mpq[q[i]].push_back(i);
+//	}
+//	vll mp(1001001, 0);
+//	sort(all(q), cmp);
+//	vll ans(t);
+//	ll l = 0, r = 0;
+//	mp[a[l]]++;
+//	ll sum = a[l];
+//	rep(i, 0, t) {
+//		while (l > q[i].first) {
+//			l--;
+//			func_add(mp, a, l, sum);
+//		}
+//		while (r < q[i].second) {
+//			r++;
+//			func_add(mp, a, r, sum);
+//		}
+//		while (r > q[i].second) {
+//			func_minus(mp, a, r, sum);
+//			r--;
+//		}
+//		while (l < q[i].first) {
+//			func_minus(mp, a, l, sum);
+//			l++;
+//		}
+//		for (auto inde : mpq[q[i]])
+//			ans[inde] = sum;
+//	}
+//	rep(i, 0, t) {
+//		cout << ans[i] << "\n";
+//	}
+//}
 
-void solve_mos(int test) {
-	ll rd(n, t);
-	vll rdv(a, n);
-	vpll rdv(q, t);
-	map<pll, vll> mpq;
-	rep(i, 0, t) {
-		q[i].first--;
-		q[i].second--;
-		mpq[q[i]].push_back(i);
-	}
-	vll mp(1001001, 0);
-	sort(all(q), cmp);
-	vll ans(t);
-	ll l = 0, r = 0;
-	mp[a[l]]++;
-	ll sum = a[l];
-	rep(i, 0, t) {
-		while (l > q[i].first) {
-			l--;
-			func_add(mp, a, l, sum);
-		}
-		while (r < q[i].second) {
-			r++;
-			func_add(mp, a, r, sum);
-		}
-		while (r > q[i].second) {
-			func_minus(mp, a, r, sum);
-			r--;
-		}
-		while (l < q[i].first) {
-			func_minus(mp, a, l, sum);
-			l++;
-		}
-		for (auto inde : mpq[q[i]])
-			ans[inde] = sum;
-	}
-	rep(i, 0, t) {
-		cout << ans[i] << "\n";
-	}
+void solve(ll test) {
+
 }
-
-void solve(int test) {
-	ll rd(n);
-	vll rdv(b, n / 2);
-	vll bb = b;
-	sort(all(bb));
-	
-	unordered_map<ll, ll> mp;
-	rep(i, 0, n / 2) {
-		mp[b[i]] = i;
-	}
-
-	vll a;
-	ll c = 0;
-	ll d = 0;
-	vll f(n, 0);//ooroos ni baga too hed belen baih yostoi
-	rep(i, 1, n + 1) {
-		if (mp.find(i) == mp.end()) {
-			c++;
-			a.push_back(i);
-		}
-		else {
-			d++;
-			f[i] = (i - 2 * d);
-			if (f[i] == 0) {
-
-			}
-		}
-	}
-	
-	
-	vll p(n + 1, 0);
-	
-	rep(i, 1, n + 1) {
-		
-		else {
-			p[i] = a.size();
-		}
-	}
-
-	
-	rep(i, 1, (n + 1)) {
-		
-	}
-}
-
 
 int main() {
-	//initFacts(120, MOD2);
+	//initFacts(100, MOD);
 	//findPrimes(100000);
+	//func(200000);
 	//freopen("input.txt", "r", stdin);
 	ios::sync_with_stdio(0); cin.tie(0);
 	int test = 1;
-	cin >> test;
+	//cin >> test;
 	for (int t = 1; t <= test; t++)
 		solve(t);
 	return 0;

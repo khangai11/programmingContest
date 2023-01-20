@@ -777,7 +777,7 @@ void func_minus(vll& mp, vll& a, ll ind, ll& sum) {
 //}
 
 void solve(ll test) {
-
+	
 }
 
 int main() {

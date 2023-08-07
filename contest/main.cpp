@@ -147,7 +147,7 @@ public:
 		return true;
 	}
 
-	int size(int a) {
+	ll size(int a) {
 		return union_size[root(a)];
 	}
 

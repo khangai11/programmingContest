@@ -1,4 +1,4 @@
-#include<iostream>
+﻿#include <iostream>
 #include<string>
 #include<algorithm>
 #include<functional>
@@ -460,10 +460,6 @@ public:
 	int n;
 	LazyReal defval = dummyReal;
 
-	lazySegmentTree() {
-
-	}
-
 	lazySegmentTree(int size) {
 		n = 1;
 		dummyReal.val = INFLL;
@@ -489,14 +485,7 @@ public:
 	//need to implement
 	LazyReal func(LazyReal& a, LazyReal& b) {
 		LazyReal r = dummyReal;
-		if (a.val <= b.val) {
-			r.val = a.val;
-			r.ind = a.ind;
-		}
-		else {
-			r.val = b.val;
-			r.ind = b.ind;
-		}
+		r.val = max(a.val, b.val);
 		return r;
 	}
 
@@ -672,7 +661,7 @@ void findDiv(vpll& p, vll v, vll& divs) {
 		}
 	}
 	divs.push_back(val);
-	v[0] ++;
+	v[0]++;
 	rep(i, 0, n - 1) {
 		if (v[i] > p[i].second) {
 			v[i + 1]++;
@@ -776,15 +765,152 @@ void func_minus(vll& mp, vll& a, ll ind, ll& sum) {
 //	}
 //}
 
+vll ps;
+
+void siev(ll n) {
+	ps.resize(n + 1, 1);
+	for (int i = 2; i <= n; i++) {
+		if (ps[i] == 1) {
+			for (ll j = i; j <= n; j += i) {
+				if (ps[j] == 1)
+					ps[j] = i;
+			}
+		}
+	}
+	ps[1] = 0;
+}
+
+bool check(vpll& a, ll st, ll en, pll& cur, pll tar) {
+	//a[st]==cur baih uyed tar-deer ochij baival true
+	//hervee false baival cur-iig hamgiin suuld ochih coordinate bolgono
+	if (en <= st) return false;
+	ll dx = cur.first - a[st].first;
+	ll dy = cur.second - a[st].second;
+	tar.first -= dx;
+	tar.second -= dy;
+
+}
+
+
+
+void solveD(ll test) {
+	ll rd(n, q);
+	string rd(s);
+	string t = s;
+	reverse(all(t));
+	vpll a, b;
+	ll x = 0, y = 0;
+	a.push_back({ x,y });
+	rep(i, 0, n) {
+		if (s[i] == 'U') y++;
+		else if (s[i] == 'D') y--;
+		else if (s[i] == 'R') x++;
+		else if (s[i] == 'L') x--;
+		a.push_back({ x,y });
+	}
+
+	x = 0;
+	y = 0;
+	b.push_back({ x,y });
+	rep(i, 0, n) {
+		if (t[i] == 'U') y++;
+		else if (t[i] == 'D') y--;
+		else if (t[i] == 'R') x++;
+		else if (t[i] == 'L') x--;
+		b.push_back({ x,y });
+	}
+
+	rep(qq, 0, q) {
+		ll rd(x, y, l, r);
+		pll tar = { x,y };
+		pll cur = { 0,0 };
+		l--;
+		if (check(a, 0, l, cur, tar)) {
+			cout << "YES\n";
+			continue;
+		}
+		if (check(b, l, r, cur, tar)) {
+			cout << "YES\n";
+			continue;
+		}
+		if (check(b, r, n, cur, tar)) {
+			cout << "YES\n";
+			continue;
+		}
+		cout << "NO\n";
+	}
+}
+
+// Trie node 
+struct TrieNode
+{
+	struct TrieNode* children[26];
+	// isEndOfWord is true if the node 
+	// represents end of a word 
+	ll cnt;
+	bool isEndOfWord;
+};
+
+// Returns new trie node (initialized to NULLs)
+struct TrieNode* getNode(void)
+{
+	struct TrieNode* pNode = new TrieNode();
+	pNode->cnt = 0;
+	pNode->isEndOfWord = false;
+
+	for (int i = 0; i < 26; i++)
+		pNode->children[i] = NULL;
+	return pNode;
+}
+
+// If not present, inserts key into trie
+// If the key is prefix of trie node, just
+// marks leaf node
+void insert(struct TrieNode* root, string key)
+{
+	struct TrieNode* pCrawl = root;
+
+	for (int i = 0; i < key.length(); i++)
+	{
+		int index = key[i] - 'a';
+		if (!pCrawl->children[index]) {
+			pCrawl->children[index] = getNode();
+		}
+		pCrawl->cnt++;
+		pCrawl = pCrawl->children[index];
+	}
+	pCrawl->cnt++;
+}
+
+// Returns true if key presents in trie, else
+// false
+ll search(struct TrieNode* root, string key)
+{
+	struct TrieNode* pCrawl = root;
+	ll val = 0;
+
+	for (int i = 0; i < key.length(); i++)
+	{
+		int index = key[i] - 'a';
+		val += pCrawl->cnt;
+		if (!pCrawl->children[index])
+			return val;
+		pCrawl = pCrawl->children[index];
+	}
+	val += pCrawl->cnt;
+	return val;
+}
+
 void solve(ll test) {
 	
 }
 
 int main() {
 	//initFacts(100, MOD);
-	//findPrimes(100000);
+	//findPrimes(200000);
 	//func(200000);
 	//freopen("input.txt", "r", stdin);
+	//freopen("output.txt", "w", stdout);
 	ios::sync_with_stdio(0); cin.tie(0);
 	int test = 1;
 	//cin >> test;

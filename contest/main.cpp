@@ -780,67 +780,6 @@ void siev(ll n) {
 	ps[1] = 0;
 }
 
-bool check(vpll& a, ll st, ll en, pll& cur, pll tar) {
-	//a[st]==cur baih uyed tar-deer ochij baival true
-	//hervee false baival cur-iig hamgiin suuld ochih coordinate bolgono
-	if (en <= st) return false;
-	ll dx = cur.first - a[st].first;
-	ll dy = cur.second - a[st].second;
-	tar.first -= dx;
-	tar.second -= dy;
-
-}
-
-
-
-void solveD(ll test) {
-	ll rd(n, q);
-	string rd(s);
-	string t = s;
-	reverse(all(t));
-	vpll a, b;
-	ll x = 0, y = 0;
-	a.push_back({ x,y });
-	rep(i, 0, n) {
-		if (s[i] == 'U') y++;
-		else if (s[i] == 'D') y--;
-		else if (s[i] == 'R') x++;
-		else if (s[i] == 'L') x--;
-		a.push_back({ x,y });
-	}
-
-	x = 0;
-	y = 0;
-	b.push_back({ x,y });
-	rep(i, 0, n) {
-		if (t[i] == 'U') y++;
-		else if (t[i] == 'D') y--;
-		else if (t[i] == 'R') x++;
-		else if (t[i] == 'L') x--;
-		b.push_back({ x,y });
-	}
-
-	rep(qq, 0, q) {
-		ll rd(x, y, l, r);
-		pll tar = { x,y };
-		pll cur = { 0,0 };
-		l--;
-		if (check(a, 0, l, cur, tar)) {
-			cout << "YES\n";
-			continue;
-		}
-		if (check(b, l, r, cur, tar)) {
-			cout << "YES\n";
-			continue;
-		}
-		if (check(b, r, n, cur, tar)) {
-			cout << "YES\n";
-			continue;
-		}
-		cout << "NO\n";
-	}
-}
-
 // Trie node 
 struct TrieNode
 {

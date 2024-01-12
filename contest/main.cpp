@@ -21,7 +21,6 @@
 #include <chrono>
 #include <thread>
 
-
 using namespace std;
 
 #ifdef _DEBUG
@@ -58,36 +57,36 @@ using namespace std;
 #define MY_PI           3.141592653589793238462643383279502884L
 #define all(v) (v).begin(), (v).end()
 
-#define rd(...) __VA_ARGS__; read(__VA_ARGS__)
-#define rdv(value,...) value(__VA_ARGS__);cin >> value
-template <class T> auto& operator>>(istream& is, vector<T>& xs) {
-	for (auto& x : xs) is >> x;
-	return is;
-}
-template <class T> auto& operator<<(ostream& os, vector<T>& xs) {
-	int sz = xs.size();
-	rep(i, 0, sz) os << xs[i] << " \n"[i + 1 == sz];
-	return os;
-}
-template <class T, class Y> auto& operator<<(ostream& os, pair<T, Y>& xs) {
-	os << "{" << xs.first << ", " << xs.second << "}";
-	return os;
-}
-template <class T, class Y> auto& operator>>(istream& is, vector<pair<T, Y>>& xs) {
-	for (auto& [x1, x2] : xs) is >> x1 >> x2;
-	return is;
-
-}
-template <class  ...Args>
-auto& read(Args & ...args) { return (cin >> ... >> args); }
-
-#define write(...) writemy(__VA_ARGS__);cout<<"\n"
-void writemy() {}
-template <typename Head, class  ...Args>
-void writemy(const Head& head, const Args & ...args) {
-	cout << head << " ";
-	writemy(args...);
-}
+//#define rd(...) __VA_ARGS__; read(__VA_ARGS__)
+//#define rdv(value,...) value(__VA_ARGS__);cin >> value
+//template <class T> auto& operator>>(istream& is, vector<T>& xs) {
+//	for (auto& x : xs) is >> x;
+//	return is;
+//}
+//template <class T> auto& operator<<(ostream& os, vector<T>& xs) {
+//	int sz = xs.size();
+//	rep(i, 0, sz) os << xs[i] << " \n"[i + 1 == sz];
+//	return os;
+//}
+//template <class T, class Y> auto& operator<<(ostream& os, pair<T, Y>& xs) {
+//	os << "{" << xs.first << ", " << xs.second << "}";
+//	return os;
+//}
+//template <class T, class Y> auto& operator>>(istream& is, vector<pair<T, Y>>& xs) {
+//	for (auto& [x1, x2] : xs) is >> x1 >> x2;
+//	return is;
+//
+//}
+//template <class  ...Args>
+//auto& read(Args & ...args) { return (cin >> ... >> args); }
+//
+//#define write(...) writemy(__VA_ARGS__);cout<<"\n"
+//void writemy() {}
+//template <typename Head, class  ...Args>
+//void writemy(const Head& head, const Args & ...args) {
+//	cout << head << " ";
+//	writemy(args...);
+//}
 
 
 
@@ -265,7 +264,7 @@ template <typename T> T my_and(T a, T b) { return (a & b); }
 template <typename T> T my_xor(T a, T b) { return (a ^ b); }
 template <typename T> T my_or(T a, T b) { return (a | b); }
 template <typename T> T my_sum(T a, T b) { return (a + b); }
-template <typename T> T my_sum_mod(T a, T b) { return (a + b) % MOD; }
+template <typename T> T my_sum_mod(T a, T b) { return (a + b) % MOD2; }
 
 /// <summary>
 /// index starts 0
@@ -404,48 +403,66 @@ ll modInverse(ll a, ll m)
 
 class LazyPart {
 public:
-	ll val = 0;
+	ll a, b, c,d;
 
 	LazyPart() {
+		a = 0;
+		b = 0;
+		c = 0;
+		d = 0;
 	}
 
-	LazyPart(ll aa) {
-		val = aa;
+	LazyPart(ll a,ll b,ll c, ll d) {
+		a = a;
+		b = b;
+		c = c;
+		d = d;
 	}
 
 	LazyPart& operator=(const LazyPart& other) {
-		val = other.val;
+		a = other.a;
+		b = other.b;
+		c = other.c;
+		d = other.d;
 		return *this;
 	}
 
 	void reset() {
-		val = 0;
+		a = 0;
+		b = 0;
+		c = 0;
+		d = 0;
 	}
 };
 
 class LazyReal {
 public:
-	ll val;
-	ll ind;
+	ll a,b,c,d;
 
 	LazyReal() {
-		val = 0;
-		ind = 0;
+		a = 0;
+		b = 0;
+		c = 0;
+		d = 0;
 	}
 
-	LazyReal(ll value, ll indx) {
-		val = value;
-		ind = indx;
+	LazyReal(ll a, ll b, ll c) {
+		a = a;
+		b = b;
+		c = c;
+		d = d;
 	}
 
 	LazyReal& operator=(const LazyReal& other) {
-		val = other.val;
-		ind = other.ind;
+		a = other.a;
+		b = other.b;
+		c = other.c;
+		d = other.d;
 		return *this;
 	}
 
 	void reset() {
-		val = ind = 0;
+		a = b = c = d=0;
 	}
 };
 
@@ -460,7 +477,7 @@ public:
 	int n;
 	LazyReal defval = dummyReal;
 
-	lazySegmentTree(int size) {
+	/*lazySegmentTree(int size) {
 		n = 1;
 		dummyReal.val = INFLL;
 		dummyReal.ind = INFLL;
@@ -469,7 +486,7 @@ public:
 		v.resize(2 * n, dummyReal);
 		z.resize(2 * n, dummyLazy);
 		islazy.resize(2 * n, false);
-	}
+	}*/
 
 	lazySegmentTree(int size, LazyReal defReal, LazyPart deflazy) {
 		n = 1;
@@ -485,19 +502,33 @@ public:
 	//need to implement
 	LazyReal func(LazyReal& a, LazyReal& b) {
 		LazyReal r = dummyReal;
-		r.val = max(a.val, b.val);
+		ll wine = a.c + b.c;
+		ll us = a.b;
+		ll d1 = a.d;
+		ll mgc = a.a;
+		ll nwine = min(a.b, b.a);
+		d1 -= nwine;
+		us -= nwine;
+		wine += nwine;
+		r.c = wine;
+		r.a = min(b.a - nwine,d1) + a.a;
+		r.b = us + b.b;
+		r.d = min(d1,b.d);
 		return r;
 	}
 
 	//a-g b-eer shinechlene.
 	//need to implement
 	void applyLazy(LazyReal& a, LazyPart& b, int len) {
-		a.val += b.val;
+		a.a = b.a;
+		a.b = b.b;
+		a.c = b.c;
+		a.d = b.d;
 	}
 	//a-g b-eer shinechlene.
 	//need to implement
 	void passDownLazy(LazyPart& a, LazyPart& b) {
-		a.val += b.val;
+		
 	}
 
 	void passDown(int ind, ll len) {
@@ -583,7 +614,7 @@ void findPrimes(int max_val) {
 	rep(i, 2, max_val + 1) {
 		if (!p[i]) {
 			primes.push_back(i);
-			ll v = i * 2;
+			ll v = i * i;
 			while (v <= max_val) {
 				p[v] = true;
 				v += i;
@@ -840,13 +871,20 @@ ll search(struct TrieNode* root, string key)
 	return val;
 }
 
+
 void solve(ll test) {
-	
+	ll n;
+	cin >> n;
+	findPrimes(n);
+	ll ans = 0;
+	for (auto v : primes) ans += v;
+	ans = ans % MOD;
+	cout << ans;
 }
 
 int main() {
-	//initFacts(100, MOD);
-	//findPrimes(200000);
+	//initFacts(1000000, MOD);
+	//findPrimes(350);
 	//func(200000);
 	//freopen("input.txt", "r", stdin);
 	//freopen("output.txt", "w", stdout);

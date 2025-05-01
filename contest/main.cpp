@@ -802,7 +802,7 @@ void siev(ll n) {
 	ps.resize(n + 1, 1);
 	for (int i = 2; i <= n; i++) {
 		if (ps[i] == 1) {
-			for (ll j = i; j <= n; j += i) {
+			for (ll j = i*i; j <= n; j += i) {
 				if (ps[j] == 1)
 					ps[j] = i;
 			}
